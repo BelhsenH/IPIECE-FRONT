@@ -42,6 +42,10 @@ export interface Conversation {
 }
 
 class ConversationService {
+  private conversationsCache: Conversation[] | null = null;
+  private cacheTimestamp: number = 0;
+  private readonly CACHE_DURATION = 30000; // 30 seconds cache
+
   private async getAuthHeaders() {
     try {
       // Small delay to ensure AsyncStorage is ready
@@ -83,20 +87,51 @@ class ConversationService {
     return config.apiUrl;
   }
 
-  async getConversations(): Promise<Conversation[]> {
+  // Cache management
+  private invalidateCache(): void {
+    this.conversationsCache = null;
+    this.cacheTimestamp = 0;
+  }
+
+  public clearCache(): void {
+    this.invalidateCache();
+  }
+
+  async getConversations(forceRefresh: boolean = false): Promise<Conversation[]> {
     try {
+      // Check cache first unless force refresh is requested
+      if (!forceRefresh && this.conversationsCache && 
+          (Date.now() - this.cacheTimestamp) < this.CACHE_DURATION) {
+        console.log('ConversationService: Returning cached conversations');
+        return this.conversationsCache;
+      }
+
       const headers = await this.getAuthHeaders();
       const url = `${config.apiUrl}/api/parts/conversations`;
+      
+      // Reduced timeout from 8 seconds to 5 seconds for faster user feedback
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
       const response = await fetch(url, {
         method: 'GET',
         headers,
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       const data = await this.handleResponse(response);
+      
+      // Cache the results
+      this.conversationsCache = data;
+      this.cacheTimestamp = Date.now();
       
       return data;
     } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.error('ConversationService: Request timeout - server taking too long');
+        throw new Error('Request timeout - please try again');
+      }
       console.error('Error fetching conversations:', error.message || error);
       throw error;
     }
@@ -149,7 +184,12 @@ class ConversationService {
         }),
       });
 
-      return await this.handleResponse(response);
+      const result = await this.handleResponse(response);
+      
+      // Invalidate conversations cache when new message is sent
+      this.invalidateCache();
+      
+      return result;
     } catch (error) {
       console.error('Error sending message:', error);
       throw error;

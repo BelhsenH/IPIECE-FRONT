@@ -60,15 +60,28 @@ const ConversationDetail: React.FC = () => {
     if (!conversationId || !token) return;
 
     try {
-      const conv = await ConversationService.getConversation(conversationId);
+      setLoading(true);
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+      
+      const conversationPromise = ConversationService.getConversation(conversationId);
+      const conv = await Promise.race([conversationPromise, timeoutPromise]) as Conversation;
+      
       setConversation(conv);
       setMessages(conv.messages || []);
       
       // Mark as read
       await ConversationService.markAsRead(conversationId);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors du chargement de la conversation:', error);
-      Alert.alert('Erreur', 'Impossible de charger la conversation');
+      if (error.message === 'Timeout') {
+        Alert.alert('Délai d\'attente', 'La conversation prend trop de temps à charger. Veuillez réessayer.');
+      } else {
+        Alert.alert('Erreur', 'Impossible de charger la conversation');
+      }
     } finally {
       setLoading(false);
     }

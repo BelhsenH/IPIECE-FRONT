@@ -53,9 +53,9 @@ const MessagesPage: React.FC = () => {
     try {
       setConversationsLoading(true);
       
-      // Add timeout to prevent hanging
+      // Add timeout to prevent hanging - reduced from 8s to 5s
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 8000)
+        setTimeout(() => reject(new Error('Timeout')), 5000)
       );
       
       const conversationPromise = ConversationService.getConversations();
@@ -190,7 +190,7 @@ const MessagesPage: React.FC = () => {
   }, [searchQuery, selectedFilter, conversations, user]);
 
   useEffect(() => {
-    // Set initial loading to false immediately to show UI faster
+    // Don't show loading screen - show UI immediately with skeleton
     setLoading(false);
     
     // Only load data if user is available
@@ -214,9 +214,63 @@ const MessagesPage: React.FC = () => {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadConversations();
+    try {
+      // Force refresh to bypass cache
+      const data = await ConversationService.getConversations(true);
+      
+      // Validate and set data same as loadConversations
+      if (!Array.isArray(data)) {
+        console.error('MessagesPage: Expected array but received:', typeof data);
+        throw new Error('Invalid data structure');
+      }
+
+      const validConversations = data.filter((conv, index) => {
+        if (!conv || typeof conv !== 'object') {
+          console.warn(`MessagesPage: Invalid conversation at index ${index}`);
+          return false;
+        }
+        
+        if (!conv._id) {
+          console.warn(`MessagesPage: Conversation missing _id at index ${index}`);
+          return false;
+        }
+        
+        if (!Array.isArray(conv.participants)) {
+          console.warn(`MessagesPage: Invalid participants at index ${index}`);
+          return false;
+        }
+        
+        return true;
+      });
+
+      setConversations(validConversations);
+      setFilteredConversations(validConversations);
+      
+      // Update filter counts
+      const unreadCount = validConversations.reduce((acc, conv) => {
+        try {
+          const currentUserParticipant = conv.participants.find(p => {
+            if (!p || typeof p !== 'object' || !p.user || !p.user._id) {
+              return false;
+            }
+            return p.user._id === user?._id;
+          });
+          return acc + (currentUserParticipant?.unreadCount && currentUserParticipant.unreadCount > 0 ? 1 : 0);
+        } catch (error) {
+          console.error('MessagesPage: Error processing conversation for unread count:', error);
+          return acc;
+        }
+      }, 0);
+      
+      setFilters([
+        { key: 'all', label: language === 'fr' ? 'Toutes' : 'الكل', count: validConversations.length },
+        { key: 'unread', label: language === 'fr' ? 'Non lues' : 'غير مقروء', count: unreadCount },
+      ]);
+    } catch (error) {
+      console.error('Error during refresh:', error);
+    }
     setRefreshing(false);
-  }, [loadConversations]);
+  }, [user?._id, language]);
 
   const openConversation = (conversation: Conversation) => {
     router.push(`/(home)/conversation-detail?id=${conversation._id}`);
@@ -339,13 +393,43 @@ const MessagesPage: React.FC = () => {
     );
   };
 
-  if (loading && conversationsLoading) {
+  // Skeleton loading component for conversations
+  const ConversationSkeleton = () => (
+    <View style={tw`bg-white rounded-xl p-4 mb-3 shadow-sm border-l-4 border-l-gray-200`}>
+      <View style={tw`flex-row items-start`}>
+        {/* Avatar skeleton */}
+        <View style={tw`w-12 h-12 bg-gray-200 rounded-full mr-3 animate-pulse`} />
+        
+        {/* Content skeleton */}
+        <View style={tw`flex-1`}>
+          <View style={tw`flex-row justify-between items-start mb-2`}>
+            <View>
+              <View style={tw`w-32 h-4 bg-gray-200 rounded mb-1`} />
+              <View style={tw`w-20 h-3 bg-gray-200 rounded`} />
+            </View>
+            <View style={tw`items-end`}>
+              <View style={tw`w-12 h-3 bg-gray-200 rounded mb-1`} />
+              <View style={tw`w-5 h-5 bg-gray-200 rounded-full`} />
+            </View>
+          </View>
+          <View style={tw`w-full h-3 bg-gray-200 rounded mb-1`} />
+          <View style={tw`w-3/4 h-3 bg-gray-200 rounded mb-2`} />
+          <View style={tw`flex-row items-center justify-between`}>
+            <View style={tw`w-16 h-6 bg-gray-200 rounded-full`} />
+            <View style={tw`w-4 h-4 bg-gray-200 rounded`} />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+
+  if (loading) {
     return (
       <SafeAreaView style={tw`flex-1 bg-gray-50`}>
         <View style={tw`flex-1 justify-center items-center`}>
           <ActivityIndicator size="large" color="#1E3A8A" />
           <Text style={tw`text-gray-600 mt-4`}>
-            {language === 'fr' ? 'Chargement des messages...' : 'تحميل الرسائل...'}
+            {language === 'fr' ? 'Initialisation...' : 'التهيئة...'}
           </Text>
         </View>
       </SafeAreaView>
@@ -416,7 +500,16 @@ const MessagesPage: React.FC = () => {
       </View>
 
       {/* Conversations List */}
-      {filteredConversations.length === 0 ? (
+      {conversationsLoading ? (
+        // Show skeleton loading while data loads
+        <View style={tw`p-4`}>
+          <ConversationSkeleton />
+          <ConversationSkeleton />
+          <ConversationSkeleton />
+          <ConversationSkeleton />
+          <ConversationSkeleton />
+        </View>
+      ) : filteredConversations.length === 0 ? (
         <View style={tw`flex-1 justify-center items-center`}>
           <Ionicons name="chatbubbles-outline" size={64} color="#D1D5DB" />
           <Text style={tw`text-gray-500 text-lg font-semibold mt-4`}>
