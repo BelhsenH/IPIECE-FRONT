@@ -12,7 +12,6 @@ import {
   RefreshControl 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Modalize } from 'react-native-modalize';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import tw from 'twrnc';
@@ -30,9 +29,7 @@ const Dashboard: React.FC = () => {
   const { language, toggleLanguage, translations } = useLanguage();
   const t = translations[language];
   const { user, logout, updateUser } = useAuth();
-  const modalizeRef = useRef<Modalize>(null);
   const hasInitialized = useRef(false);
-  const [selectedRequest, setSelectedRequest] = useState<PartsRequest | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,6 +54,7 @@ const Dashboard: React.FC = () => {
 
       // Map UserService profile to AuthContext user structure
       const userUpdate = {
+        _id: profile._id,
         firstName: profile.firstName,
         lastName: profile.lastName,
         phone: profile.phone,
@@ -65,14 +63,23 @@ const Dashboard: React.FC = () => {
         location: profile.location,
         specialization: profile.specialization,
         email: profile.email,
+        createdAt: profile.createdAt,
         updatedAt: profile.updatedAt,
       };
       console.log('Dashboard: Updating user with:', userUpdate);
       updateUser(userUpdate);
-    } catch (error) {
+      
+      // Ensure we wait for the state update to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (error: any) {
       console.error('Dashboard: Error loading user profile:', error);
+      
+      // If it's an auth error, redirect to login
+      if (error.message === 'Unauthorized') {
+        logout();
+      }
     }
-  }, [updateUser]);
+  }, [updateUser, logout]);
 
   const loadStats = useCallback(async () => {
     try {
@@ -110,6 +117,7 @@ const Dashboard: React.FC = () => {
       
       // Don't proceed if user is not available
       if (!user?._id) {
+        console.log('Dashboard: No user available for conversations, skipping...');
         setStats(prev => ({
           ...prev,
           activeConversations: 0,
@@ -202,7 +210,7 @@ const Dashboard: React.FC = () => {
     } finally {
       setConversationsLoading(false);
     }
-  }, [user]);
+  }, [user?._id]); // Only depend on user._id
 
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -211,20 +219,28 @@ const Dashboard: React.FC = () => {
       hasInitialized.current = true;
       setLoading(true);
       
-      // First load user profile to ensure user data is available
-      await loadUserProfile();
-      
-      // Then load other data in parallel
-      await Promise.all([
-        loadStats(),
-        loadConversations(), // This will now check for user availability internally
-      ]);
-      
-      setLoading(false);
+      try {
+        // First load user profile to ensure user data is available
+        await loadUserProfile();
+        
+        // Then load stats immediately (doesn't depend on user)
+        await loadStats();
+      } catch (error) {
+        console.error('Dashboard: Error during initialization:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     
     initializeDashboard();
-  }, [loadUserProfile, loadStats, loadConversations]);
+  }, [loadUserProfile, loadStats]);
+
+  // Separate effect for loading conversations once user is available
+  useEffect(() => {
+    if (user?._id && !loading && !conversationsLoading) {
+      loadConversations();
+    }
+  }, [user?._id, loading, conversationsLoading, loadConversations]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -240,9 +256,11 @@ const Dashboard: React.FC = () => {
       ]);
     } catch (error) {
       console.error('Dashboard: Error during refresh:', error);
+      // Don't show error to user for refresh failures, just log them
+      // The individual loading functions handle their own error states
+    } finally {
+      setRefreshing(false);
     }
-    
-    setRefreshing(false);
   }, [loadUserProfile, loadStats, loadConversations]);
 
 // assuming you're using expo-router
@@ -274,18 +292,12 @@ const handleLogout = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const openRequestModal = (request: PartsRequest) => {
-    setSelectedRequest(request);
-    modalizeRef.current?.open();
-  };
-
 
 
   const handleStartConversation = async (request: PartsRequest) => {
     try {
       const conversation = await ConversationService.createConversation(request._id);
       router.push(`/(home)/conversation-detail?id=${conversation._id}`);
-      modalizeRef.current?.close();
     } catch {
       Alert.alert(t.error || 'Erreur', 'Impossible de démarrer la conversation');
     }
@@ -299,7 +311,7 @@ const handleLogout = () => {
 
   const getCategoryImageUrl = (imagePath?: string) => {
     if (!imagePath) {
-      console.log('Dashboard: No imagePath provided');
+      // Don't log for null/undefined paths to reduce noise
       return null;
     }
     if (imagePath.startsWith('http')) {
@@ -971,99 +983,6 @@ const handleLogout = () => {
           )}
         </View>
       </ScrollView>
-
-      {/* Modal pour les détails de la demande */}
-      <Modalize
-        ref={modalizeRef}
-        adjustToContentHeight
-        modalStyle={tw`bg-white rounded-t-3xl`}
-        handlePosition="outside"
-        handleStyle={tw`bg-gray-300 w-12 h-1.5 rounded-full mt-2`}
-      >
-        {selectedRequest && (
-          <View style={tw`p-6`}>
-            <Text style={tw`text-2xl font-bold text-blue-900 mb-6`}>{t.requestDetails || 'Détails de la demande'}</Text>
-            
-            <View style={tw`bg-gray-50 rounded-xl p-4 mb-6`}>
-              <View style={tw`flex-row items-center mb-3`}>
-                {selectedRequest.category?.imagePath ? (
-                  <Image
-                    source={{ uri: getCategoryImageUrl(selectedRequest.category.imagePath) || '' }}
-                    style={tw`w-8 h-8 mr-3`}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <Ionicons name="car-sport" size={32} color="#1E3A8A" style={tw`mr-3`} />
-                )}
-                <Text style={tw`text-xl font-bold text-gray-800`}>{selectedRequest.partName}</Text>
-              </View>
-              
-              <View style={tw`mb-4`}>
-                <Text style={tw`text-base font-semibold text-gray-700 mb-1`}>{t.requesterLabel || 'Demandeur:'}</Text>
-                <Text style={tw`text-gray-600`}>
-                  {selectedRequest.requester?.firstName} {selectedRequest.requester?.lastName} 
-                  ({selectedRequest.requester?.userType || 'Utilisateur'})
-                </Text>
-                <Text style={tw`text-blue-600`}>{selectedRequest.requester?.phone}</Text>
-              </View>
-
-              <View style={tw`mb-4`}>
-                <Text style={tw`text-base font-semibold text-gray-700 mb-1`}>{t.vehicleLabel || 'Véhicule:'}</Text>
-                <Text style={tw`text-gray-600`}>
-                  {selectedRequest.vehicleInfo?.brand} {selectedRequest.vehicleInfo?.model} ({selectedRequest.vehicleInfo?.year})
-                </Text>
-                <Text style={tw`text-gray-500 text-sm`}>
-                  {t.licensePlate || 'Immatriculation:'} {selectedRequest.vehicleInfo?.licensePlate}
-                </Text>
-                {selectedRequest.vehicleInfo?.vin && (
-                  <Text style={tw`text-gray-500 text-sm`}>VIN: {selectedRequest.vehicleInfo.vin}</Text>
-                )}
-              </View>
-
-              {selectedRequest.notes && (
-                <View style={tw`mb-4`}>
-                  <Text style={tw`text-base font-semibold text-gray-700 mb-1`}>{t.notesLabel || 'Notes:'}</Text>
-                  <Text style={tw`text-gray-600`}>{selectedRequest.notes}</Text>
-                </View>
-              )}
-
-              <View style={tw`flex-row justify-between items-center`}>
-                <View>
-                  <Text style={tw`text-sm text-gray-500`}>{t.urgencyLabel || 'Urgence:'}</Text>
-                  <View style={[tw`px-3 py-1 rounded-full`, { backgroundColor: getUrgencyColor(selectedRequest.urgencyLevel || 'medium') }]}>
-                    <Text style={tw`text-white text-sm font-semibold`}>
-                      {getUrgencyText(selectedRequest.urgencyLevel || 'medium')}
-                    </Text>
-                  </View>
-                </View>
-                <View>
-                  <Text style={tw`text-sm text-gray-500`}>{t.dateLabel || 'Date:'}</Text>
-                  <Text style={tw`text-gray-700`}>{formatTimeAgo(selectedRequest.createdAt)}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={tw`flex-row gap-3`}>
-              <TouchableOpacity
-                style={tw`flex-1 bg-blue-600 rounded-xl p-4 items-center`}
-                onPress={() => handleStartConversation(selectedRequest)}
-              >
-                <Ionicons name="chatbubble" size={20} color="white" />
-                <Text style={tw`text-white font-semibold mt-1`}>{t.message || 'Message'}</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={tw`flex-1 bg-green-600 rounded-xl p-4 items-center`}
-                onPress={() => handleCall(selectedRequest.requester?.phone || '')}
-              >
-                <Ionicons name="call" size={20} color="white" />
-                <Text style={tw`text-white font-semibold mt-1`}>{t.callAction || 'Appeler'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-      </Modalize>
     </SafeAreaView>
   );
 };
