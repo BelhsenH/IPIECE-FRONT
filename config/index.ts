@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 
 // Check if running on Android emulator
 const isAndroidEmulator = Constants.platform?.android && Constants.isDevice === false;
-const defaultApiUrl = isAndroidEmulator ? 'http://10.0.2.2:8888' : 'http://192.168.43.6:8888';
+const defaultApiUrl = isAndroidEmulator ? 'http://10.0.2.2:8888' : 'http://192.168.100.14:8888';
 
 const config = {
   // Update these URLs to match your backend services

@@ -51,10 +51,26 @@ const Dashboard: React.FC = () => {
   // Load user profile data
   const loadUserProfile = useCallback(async () => {
     try {
+      console.log('Dashboard: Starting loadUserProfile...');
       const profile = await UserService.getProfile();
-      updateUser(profile);
-    } catch {
-      // Error handling - could add user notification here if needed
+      console.log('Dashboard: UserService.getProfile returned:', profile);
+
+      // Map UserService profile to AuthContext user structure
+      const userUpdate = {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone,
+        userType: profile.userType,
+        companyName: profile.companyName,
+        location: profile.location,
+        specialization: profile.specialization,
+        email: profile.email,
+        updatedAt: profile.updatedAt,
+      };
+      console.log('Dashboard: Updating user with:', userUpdate);
+      updateUser(userUpdate);
+    } catch (error) {
+      console.error('Dashboard: Error loading user profile:', error);
     }
   }, [updateUser]);
 
@@ -641,7 +657,11 @@ const handleLogout = () => {
           />
           <View>
             <Text style={tw`text-xl font-bold text-white`}>
-              {t.hello || (language === 'fr' ? 'Bonjour' : 'مرحباً')} {user?.firstName || 'Utilisateur'}
+              {t.hello || (language === 'fr' ? 'Bonjour' : 'مرحباً')} {(() => {
+                console.log('Dashboard: Rendering user name, user object:', user);
+                console.log('Dashboard: user.firstName:', user?.firstName);
+                return user?.firstName || 'Utilisateur';
+              })()}
             </Text>
             <Text style={tw`text-blue-200 text-sm`}>
               {user?.companyName || user?.lastName || 'iPiece Provider'}
@@ -968,7 +988,7 @@ const handleLogout = () => {
               <View style={tw`flex-row items-center mb-3`}>
                 {selectedRequest.category?.imagePath ? (
                   <Image
-                    source={{ uri: getCategoryImageUrl(selectedRequest.category.imagePath) }}
+                    source={{ uri: getCategoryImageUrl(selectedRequest.category.imagePath) || '' }}
                     style={tw`w-8 h-8 mr-3`}
                     resizeMode="contain"
                   />
