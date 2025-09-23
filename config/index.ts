@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 
 // Check if running on Android emulator
 const isAndroidEmulator = Constants.platform?.android && Constants.isDevice === false;
-const defaultApiUrl = isAndroidEmulator ? 'http://10.0.2.2:8888' : 'http://162.19.66.250:6892';
+const defaultApiUrl = isAndroidEmulator ? 'http://10.0.2.2:8888' : 'https://icar.api.qantumshift.com';
 
 const config = {
   // Update these URLs to match your backend services
