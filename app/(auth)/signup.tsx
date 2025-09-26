@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView, Image } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import StepIndicator from 'react-native-step-indicator';
-import { useRouter } from 'expo-router';
+import tw from 'twrnc';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { authService } from '../../scripts/auth-script';
-import tw from 'twrnc';
 
 const stepsKeys = ['companyInfo', 'location', 'contact', 'specialization'];
 
@@ -271,7 +271,7 @@ const SignUp: React.FC = () => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
     setFormData({
       ...formData,
-      geolocation: { lat: latitude.toString(), lng: longitude.toString() },
+      geolocation: { lat: latitude, lng: longitude },
     });
     setRegion({ ...region, latitude, longitude });
   };
@@ -350,7 +350,20 @@ const SignUp: React.FC = () => {
                 placeholder={t.latitude || "Latitude"}
                 keyboardType="numeric"
                 value={formData.geolocation.lat.toString()}
-                onChangeText={(text) => setFormData({ ...formData, geolocation: { ...formData.geolocation, lat: parseFloat(text) || 0 } })}
+                onChangeText={(text) => {
+                  const numericValue = parseFloat(text);
+                  const finalValue = isNaN(numericValue) ? 0 : numericValue;
+                  setFormData({ 
+                    ...formData, 
+                    geolocation: { 
+                      ...formData.geolocation, 
+                      lat: finalValue 
+                    } 
+                  });
+                  if (!isNaN(numericValue)) {
+                    setRegion(prev => ({ ...prev, latitude: finalValue }));
+                  }
+                }}
                 placeholderTextColor="#9CA3AF"
               />
               <TextInput
@@ -358,7 +371,20 @@ const SignUp: React.FC = () => {
                 placeholder={t.longitude || "Longitude"}
                 keyboardType="numeric"
                 value={formData.geolocation.lng.toString()}
-                onChangeText={(text) => setFormData({ ...formData, geolocation: { ...formData.geolocation, lng: parseFloat(text) || 0 } })}
+                onChangeText={(text) => {
+                  const numericValue = parseFloat(text);
+                  const finalValue = isNaN(numericValue) ? 0 : numericValue;
+                  setFormData({ 
+                    ...formData, 
+                    geolocation: { 
+                      ...formData.geolocation, 
+                      lng: finalValue 
+                    } 
+                  });
+                  if (!isNaN(numericValue)) {
+                    setRegion(prev => ({ ...prev, longitude: finalValue }));
+                  }
+                }}
                 placeholderTextColor="#9CA3AF"
               />
             </View>

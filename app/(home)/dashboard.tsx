@@ -1,28 +1,28 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  FlatList, 
-  Linking, 
-  Alert, 
-  Image, 
-  ScrollView, 
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
   ActivityIndicator,
-  RefreshControl 
+  Alert,
+  FlatList,
+  Image,
+  Linking,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import tw from 'twrnc';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { useLanguage } from '../../contexts/LanguageContext';
-import { useAuth } from '../../contexts/AuthContext';
-import PartsService, { PartsRequest } from '../../services/partsService';
-import ConversationService, { Conversation } from '../../services/conversationService';
-import UserService from '../../services/userService';
 import config from '../../config';
+import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import ConversationService, { Conversation } from '../../services/conversationService';
+import PartsService, { PartsRequest } from '../../services/partsService';
+import UserService from '../../services/userService';
 
 const Dashboard: React.FC = () => {
   const router = useRouter();
@@ -44,6 +44,7 @@ const Dashboard: React.FC = () => {
     completedRequests: 0,
   });
   const [pendingRequests, setPendingRequests] = useState<PartsRequest[]>([]);
+  const [currentUser, setCurrentUser] = useState(user); // Local user state for immediate updates
 
   // Load user profile data
   const loadUserProfile = useCallback(async () => {
@@ -67,10 +68,13 @@ const Dashboard: React.FC = () => {
         updatedAt: profile.updatedAt,
       };
       console.log('Dashboard: Updating user with:', userUpdate);
+      
+      // Update local state immediately
+      setCurrentUser(prev => ({ ...prev, ...userUpdate } as any));
+      
+      // Also update AuthContext
       updateUser(userUpdate);
       
-      // Ensure we wait for the state update to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error: any) {
       console.error('Dashboard: Error loading user profile:', error);
       
@@ -80,6 +84,13 @@ const Dashboard: React.FC = () => {
       }
     }
   }, [updateUser, logout]);
+
+  // Sync local user state with AuthContext when it changes
+  useEffect(() => {
+    if (user && user._id) {
+      setCurrentUser(user);
+    }
+  }, [user]);
 
   const loadStats = useCallback(async () => {
     try {
@@ -116,7 +127,7 @@ const Dashboard: React.FC = () => {
       setConversationsLoading(true);
       
       // Don't proceed if user is not available
-      if (!user?._id) {
+      if (!currentUser?._id) {
         console.log('Dashboard: No user available for conversations, skipping...');
         setStats(prev => ({
           ...prev,
@@ -166,7 +177,7 @@ const Dashboard: React.FC = () => {
       // Calculate unread count with proper null checks
       const unreadCount = validConversations.reduce((acc, conv) => {
         try {
-          const currentUser = conv.participants.find(p => {
+          const currentUserConv = conv.participants.find(p => {
             // Ensure participant structure is valid
             if (!p || typeof p !== 'object') {
               return false;
@@ -176,11 +187,11 @@ const Dashboard: React.FC = () => {
               return false;
             }
             
-            return p.user._id === user._id;
+            return p.user._id === currentUser._id;
           });
           
-          if (currentUser && typeof currentUser.unreadCount === 'number') {
-            return acc + currentUser.unreadCount;
+          if (currentUserConv && typeof currentUserConv.unreadCount === 'number') {
+            return acc + currentUserConv.unreadCount;
           }
           
           return acc;
@@ -210,7 +221,7 @@ const Dashboard: React.FC = () => {
     } finally {
       setConversationsLoading(false);
     }
-  }, [user?._id]); // Only depend on user._id
+  }, [currentUser?._id]); // Only depend on currentUser._id
 
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -237,10 +248,10 @@ const Dashboard: React.FC = () => {
 
   // Separate effect for loading conversations once user is available
   useEffect(() => {
-    if (user?._id && !loading && !conversationsLoading) {
+    if (currentUser?._id && !loading && !conversationsLoading) {
       loadConversations();
     }
-  }, [user?._id, loading, conversationsLoading, loadConversations]);
+  }, [currentUser?._id, loading, conversationsLoading, loadConversations]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -670,13 +681,13 @@ const handleLogout = () => {
           <View>
             <Text style={tw`text-xl font-bold text-white`}>
               {t.hello || (language === 'fr' ? 'Bonjour' : 'مرحباً')} {(() => {
-                console.log('Dashboard: Rendering user name, user object:', user);
-                console.log('Dashboard: user.firstName:', user?.firstName);
-                return user?.firstName || 'Utilisateur';
+                console.log('Dashboard: Rendering user name, currentUser object:', currentUser);
+                console.log('Dashboard: currentUser.firstName:', currentUser?.firstName);
+                return currentUser?.firstName || 'Utilisateur';
               })()}
             </Text>
             <Text style={tw`text-blue-200 text-sm`}>
-              {user?.companyName || user?.lastName || 'iPiece Provider'}
+              {currentUser?.companyName || currentUser?.lastName || 'iPiece Provider'}
             </Text>
             <TouchableOpacity onPress={() => router.push('/(home)/profile')}>
               <Text style={tw`text-blue-200 text-sm underline`}>
@@ -746,11 +757,11 @@ const handleLogout = () => {
               <Ionicons name="business" size={32} color="#1E3A8A" />
             </View>
             <Text style={tw`text-blue-900 text-base font-bold text-center`}>
-              {user?.firstName || ''} {user?.lastName || ''}
+              {currentUser?.firstName || ''} {currentUser?.lastName || ''}
             </Text>
-            <Text style={tw`text-blue-400 text-xs text-center`}>{user?.email || ''}</Text>
+            <Text style={tw`text-blue-400 text-xs text-center`}>{currentUser?.email || ''}</Text>
             <Text style={tw`text-blue-600 text-sm font-semibold mt-1 text-center`}>
-              {user?.companyName || (t.supplier || (language === 'fr' ? 'Fournisseur iPiece' : 'مورد iPiece'))}
+              {currentUser?.companyName || (t.supplier || (language === 'fr' ? 'Fournisseur iPiece' : 'مورد iPiece'))}
             </Text>
             <Text style={tw`text-blue-300 text-xs mt-1 underline`}>
               {t.editProfile || (language === 'fr' ? 'Modifier le profil' : 'تعديل الملف الشخصي')}
