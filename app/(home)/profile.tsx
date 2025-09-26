@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import MapView, { Marker, Region } from 'react-native-maps';
 import { useRouter } from 'expo-router';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { useAuth } from '../../contexts/AuthContext';
-import UserService, { UpdateProfileData } from '../../services/userService';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
+import OpenStreetMapView from '../../components/modern/OpenStreetMapView';
+import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import UserService, { UpdateProfileData } from '../../services/userService';
 
 // Sample car brands and models
 const carData: { [key: string]: string[] } = {
@@ -53,12 +53,6 @@ const Profile: React.FC = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [region, setRegion] = useState<Region>({
-    latitude: user?.geolocation?.lat || 36.8065,
-    longitude: user?.geolocation?.lng || 10.1815,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
 
   // Load user profile on component mount
   useEffect(() => {
@@ -88,12 +82,6 @@ const Profile: React.FC = () => {
         zoneGeoCouverte: user.zoneGeoCouverte || '',
         typesPieces: user.typesPieces || ['neuf'],
         marquesSpecialises: Array.isArray(user.marqueSpecialise) ? user.marqueSpecialise : [],
-      });
-      setRegion({
-        latitude: user.geolocation?.lat || 36.8065,
-        longitude: user.geolocation?.lng || 10.1815,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
       });
     }
   }, [user]);
@@ -192,16 +180,14 @@ const Profile: React.FC = () => {
     }));
   };
 
-  const handleMapPress = (e: any) => {
-    if (!isEditing) return;
-    
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-    setFormData(prev => ({
-      ...prev,
-      latitude,
-      longitude,
-    }));
-    setRegion({ ...region, latitude, longitude });
+  const handleLocationSelect = (location: { latitude: number; longitude: number }) => {
+    if (isEditing) {
+      setFormData(prev => ({
+        ...prev,
+        latitude: location.latitude,
+        longitude: location.longitude,
+      }));
+    }
   };
 
   const handleLogout = () => {
@@ -413,22 +399,12 @@ const Profile: React.FC = () => {
             </View>
           </View>
           
-          <View style={tw`w-full h-64 rounded-2xl overflow-hidden shadow-md border border-gray-200`}>
-            <MapView
-              style={tw`w-full h-full`}
-              region={region}
-              onPress={handleMapPress}
-            >
-              <Marker
-                coordinate={{
-                  latitude: formData.latitude,
-                  longitude: formData.longitude,
-                }}
-                title={user?.nomBoutiqueSociete || 'Mon entreprise'}
-                description={formData.adresse}
-              />
-            </MapView>
-          </View>
+          <OpenStreetMapView
+            latitude={formData.latitude}
+            longitude={formData.longitude}
+            onLocationSelect={isEditing ? handleLocationSelect : undefined}
+            style={tw`w-full h-64 rounded-2xl overflow-hidden shadow-md border border-gray-200`}
+          />
           {isEditing && (
             <Text style={tw`text-xs text-gray-500 mt-2 text-center`}>
               {t.tapToSelectLocation || "Appuyez sur la carte pour sélectionner votre emplacement"}

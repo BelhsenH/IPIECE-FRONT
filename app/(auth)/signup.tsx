@@ -2,13 +2,11 @@ import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker, Region } from 'react-native-maps';
 import StepIndicator from 'react-native-step-indicator';
 import tw from 'twrnc';
+import OpenStreetMapView from '../../components/modern/OpenStreetMapView';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { authService } from '../../scripts/auth-script';
-
-const stepsKeys = ['companyInfo', 'location', 'contact', 'specialization'];
 
 const stepIndicatorStyles = {
   stepIndicatorSize: 30,
@@ -147,12 +145,6 @@ const SignUp: React.FC = () => {
     confirmPassword: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [region, setRegion] = useState<Region>({
-    latitude: 36.8065,
-    longitude: 10.1815,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
 
   const validateStep = () => {
     if (currentStep === 0) {
@@ -186,11 +178,22 @@ const SignUp: React.FC = () => {
   };
 
   const handleNext = () => {
+    console.log('SignUp: handleNext called, currentStep:', currentStep);
+    console.log('SignUp: Form data validation:', {
+      step: currentStep,
+      type: formData.type,
+      nomBoutiqueSociete: formData.nomBoutiqueSociete?.trim(),
+      nomGerant: formData.nomGerant?.trim(),
+      isValid: validateStep()
+    });
+    
     if (!validateStep()) {
       Alert.alert(t.error || 'Erreur', t.fillFields || 'Veuillez remplir tous les champs requis correctement.');
       return;
     }
+    
     if (currentStep < steps.length - 1) {
+      console.log('SignUp: Moving to next step:', currentStep + 1);
       setCurrentStep(currentStep + 1);
     } else {
       handleSignUp();
@@ -267,13 +270,23 @@ const SignUp: React.FC = () => {
     }));
   };
 
-  const handleMapPress = (e: any) => {
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-    setFormData({
-      ...formData,
-      geolocation: { lat: latitude, lng: longitude },
-    });
-    setRegion({ ...region, latitude, longitude });
+  const handleLocationSelect = (location: { latitude: number; longitude: number }) => {
+    try {
+      console.log('SignUp: Location selected, coordinates:', location);
+      
+      // Ensure coordinates are valid numbers
+      if (typeof location.latitude === 'number' && typeof location.longitude === 'number' && 
+          !isNaN(location.latitude) && !isNaN(location.longitude)) {
+        setFormData({
+          ...formData,
+          geolocation: { lat: location.latitude, lng: location.longitude },
+        });
+      } else {
+        console.warn('SignUp: Invalid coordinates received:', location);
+      }
+    } catch {
+      console.error('SignUp: Error handling location select');
+    }
   };
 
   const renderStepContent = () => {
@@ -330,20 +343,12 @@ const SignUp: React.FC = () => {
             <Text style={tw`text-lg font-semibold text-blue-900 mb-2 text-center`}>
               {t.geolocation || "Géolocalisation"}
             </Text>
-            <View style={tw`w-full h-64 mb-4 rounded-lg overflow-hidden`}>
-              <MapView
-                style={tw`w-full h-full`}
-                region={region}
-                onPress={handleMapPress}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: formData.geolocation.lat,
-                    longitude: formData.geolocation.lng,
-                  }}
-                />
-              </MapView>
-            </View>
+            <OpenStreetMapView
+              latitude={typeof formData.geolocation.lat === 'number' ? formData.geolocation.lat : 36.8065}
+              longitude={typeof formData.geolocation.lng === 'number' ? formData.geolocation.lng : 10.1815}
+              onLocationSelect={handleLocationSelect}
+              style={tw`w-full h-64 mb-4`}
+            />
             <View style={tw`flex-row mb-4`}>
               <TextInput
                 style={tw`flex-1 h-12 bg-gray-100 rounded-lg px-4 mr-2 text-blue-900`}
@@ -360,9 +365,6 @@ const SignUp: React.FC = () => {
                       lat: finalValue 
                     } 
                   });
-                  if (!isNaN(numericValue)) {
-                    setRegion(prev => ({ ...prev, latitude: finalValue }));
-                  }
                 }}
                 placeholderTextColor="#9CA3AF"
               />
@@ -381,9 +383,6 @@ const SignUp: React.FC = () => {
                       lng: finalValue 
                     } 
                   });
-                  if (!isNaN(numericValue)) {
-                    setRegion(prev => ({ ...prev, longitude: finalValue }));
-                  }
                 }}
                 placeholderTextColor="#9CA3AF"
               />
