@@ -1,24 +1,46 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
-import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useRouter } from 'expo-router';
+import * as ExpoSplashScreen from 'expo-splash-screen';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 
 const SplashScreen: React.FC = () => {
   const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Prevent auto-hiding of the splash screen
-    ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
+    async function prepare() {
+      try {
+        // Keep the splash screen visible while we fetch resources
+        await ExpoSplashScreen.preventAutoHideAsync();
+        
+        // Simulate app initialization (replace with your actual initialization logic)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Hide the native splash screen
+        await ExpoSplashScreen.hideAsync();
+        
+        setIsReady(true);
+        
+        // Navigate after a short delay to show our custom splash
+        setTimeout(() => {
+          router.replace('/(auth)/login');
+        }, 1000);
+        
+      } catch (e) {
+        console.warn('Splash screen error:', e);
+        // Navigate anyway if there's an error
+        setTimeout(() => {
+          router.replace('/(auth)/login');
+        }, 1000);
+      }
+    }
 
-    // Simulate loading or initialization
-    const timer = setTimeout(() => {
-      // Hide the splash screen and navigate to the main screen
-      ExpoSplashScreen.hideAsync().catch(() => {});
-      router.replace('/(auth)/login'); // Adjust to your route path
-    }, 3000); // 3-second delay
-
-    return () => clearTimeout(timer); // Cleanup timer
+    prepare();
   }, [router]);
+
+  if (!isReady) {
+    return null; // Let native splash screen show
+  }
 
   return (
     <View style={styles.container}>
