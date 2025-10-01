@@ -821,15 +821,7 @@ const handleLogout = () => {
           </Text>
         </TouchableOpacity>*/}
 
-        <TouchableOpacity
-          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-blue-700`}
-          onPress={() => { setIsSidebarOpen(false); router.push('/(home)/conversations'); }}
-        >
-          <Ionicons name="chatbubbles-outline" size={20} color="white" style={tw`mr-3`} />
-          <Text style={tw`text-white text-base font-medium`}>
-            {t.conversations || (language === 'fr' ? 'Conversations' : 'المحادثات')}
-          </Text>
-        </TouchableOpacity>
+        {/* Conversations sidebar item removed as requested */}
 
         <TouchableOpacity
           style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-blue-700`}

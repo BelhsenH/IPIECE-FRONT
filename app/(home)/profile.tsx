@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import OpenStreetMapView from '../../components/modern/OpenStreetMapView';
@@ -22,8 +22,9 @@ const carData: { [key: string]: string[] } = {
 const Profile: React.FC = () => {
   const router = useRouter();
   const { language, toggleLanguage, translations } = useLanguage();
-  const { user, updateUser, refreshUserProfile, logout } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const t = translations[language];
+  const [currentUser, setCurrentUser] = useState(user); // Local user state for immediate updates
 
   const [formData, setFormData] = useState<{
     type: 'boutique' | 'societe';
@@ -38,53 +39,100 @@ const Profile: React.FC = () => {
     typesPieces: ('neuf' | 'occasion')[];
     marquesSpecialises: string[];
   }>({
-    type: user?.type || 'boutique',
-    nomBoutiqueSociete: user?.nomBoutiqueSociete || '',
-    nomGerant: user?.nomGerant || '',
-    email: user?.email || '',
-    phoneNumber: user?.phoneNumber || '',
-    adresse: user?.adresse || '',
-    latitude: user?.geolocation?.lat || 36.8065,
-    longitude: user?.geolocation?.lng || 10.1815,
-    zoneGeoCouverte: user?.zoneGeoCouverte || '',
-    typesPieces: user?.typesPieces || ['neuf'],
-    marquesSpecialises: Array.isArray(user?.marqueSpecialise) ? user.marqueSpecialise : [],
+    type: currentUser?.type || 'boutique',
+    nomBoutiqueSociete: currentUser?.companyName || '',
+    nomGerant: currentUser?.firstName || '',
+    email: currentUser?.email || '',
+    phoneNumber: currentUser?.phone || '',
+    adresse: currentUser?.location?.address || '',
+    latitude: currentUser?.location?.latitude || 36.8065,
+    longitude: currentUser?.location?.longitude || 10.1815,
+    zoneGeoCouverte: currentUser?.zoneGeoCouverte || '',
+    typesPieces: (currentUser?.specialization?.partTypes || ['neuf']) as ('neuf' | 'occasion')[],
+    marquesSpecialises: Array.isArray(currentUser?.specialization?.vehicleBrands) ? currentUser.specialization.vehicleBrands : [],
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Load user profile data
+  const loadUserProfile = useCallback(async () => {
+    try {
+      console.log('Profile: Starting loadUserProfile...');
+      const profile = await UserService.getProfile();
+      console.log('Profile: UserService.getProfile returned:', profile);
+
+      // Map UserService profile to AuthContext user structure
+      const userUpdate = {
+        _id: profile._id,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone,
+        userType: profile.userType,
+        companyName: profile.companyName,
+        location: profile.location,
+        specialization: profile.specialization,
+        email: profile.email,
+        createdAt: profile.createdAt,
+        updatedAt: profile.updatedAt,
+      };
+      console.log('Profile: Updating user with:', userUpdate);
+      
+      // Update local state immediately
+      setCurrentUser(prev => ({ ...prev, ...userUpdate } as any));
+      
+      // Also update AuthContext
+      updateUser(userUpdate);
+      
+    } catch (error: any) {
+      console.error('Profile: Error loading user profile:', error);
+      
+      // If it's an auth error, redirect to login
+      if (error.message === 'Unauthorized') {
+        logout();
+      }
+    }
+  }, [updateUser, logout]);
+
   // Load user profile on component mount
   useEffect(() => {
-    const loadUserProfile = async () => {
+    const initializeProfile = async () => {
       try {
-        await refreshUserProfile();
+        // Load user profile from UserService
+        await loadUserProfile();
       } catch (error) {
-        console.error('Error loading profile:', error);
+        console.error('Profile: Error during initialization:', error);
       }
     };
     
-    loadUserProfile();
-  }, [refreshUserProfile]);
+    initializeProfile();
+  }, [loadUserProfile]);
 
-  // Update form data when user data changes
+  // Sync local user state with AuthContext when it changes
   useEffect(() => {
-    if (user) {
-      setFormData({
-        type: user.type || 'boutique',
-        nomBoutiqueSociete: user.nomBoutiqueSociete || '',
-        nomGerant: user.nomGerant || '',
-        email: user.email || '',
-        phoneNumber: user.phoneNumber || '',
-        adresse: user.adresse || '',
-        latitude: user.geolocation?.lat || 36.8065,
-        longitude: user.geolocation?.lng || 10.1815,
-        zoneGeoCouverte: user.zoneGeoCouverte || '',
-        typesPieces: user.typesPieces || ['neuf'],
-        marquesSpecialises: Array.isArray(user.marqueSpecialise) ? user.marqueSpecialise : [],
-      });
+    if (user && user._id) {
+      setCurrentUser(user);
     }
   }, [user]);
+
+  // Update form data when currentUser data changes
+  useEffect(() => {
+    if (currentUser) {
+      setFormData({
+        type: currentUser.type || 'boutique',
+        nomBoutiqueSociete: currentUser.companyName || '',
+        nomGerant: currentUser.firstName || '',
+        email: currentUser.email || '',
+        phoneNumber: currentUser.phone || '',
+        adresse: currentUser.location?.address || '',
+        latitude: currentUser.location?.latitude || 36.8065,
+        longitude: currentUser.location?.longitude || 10.1815,
+        zoneGeoCouverte: currentUser.zoneGeoCouverte || '',
+        typesPieces: (currentUser.specialization?.partTypes || ['neuf']) as ('neuf' | 'occasion')[],
+        marquesSpecialises: Array.isArray(currentUser.specialization?.vehicleBrands) ? currentUser.specialization.vehicleBrands : [],
+      });
+    }
+  }, [currentUser]);
 
   const validateForm = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -131,6 +179,11 @@ const Profile: React.FC = () => {
       };
 
       const updatedProfile = await UserService.updateProfile(updateData);
+      
+      // Update local state immediately
+      setCurrentUser(prev => ({ ...prev, ...updatedProfile } as any));
+      
+      // Also update AuthContext
       updateUser(updatedProfile);
       
       setIsEditing(false);
@@ -236,14 +289,14 @@ const Profile: React.FC = () => {
         <View style={tw`items-center mt-4`}>
           <View style={tw`w-24 h-24 bg-white/20 rounded-full items-center justify-center mb-3 shadow-lg`}>
             <Text style={tw`text-3xl text-white font-bold`}>
-              {user?.nomGerant?.charAt(0)?.toUpperCase() || 'U'}
+              {currentUser?.firstName?.charAt(0)?.toUpperCase() || 'U'}
             </Text>
           </View>
           <Text style={tw`text-2xl font-bold text-black text-center mb-1`}>
-            {user?.nomGerant || 'Utilisateur'}
+            {currentUser?.firstName || 'Utilisateur'}
           </Text>
           <Text style={tw`text-base text-black/80 text-center mb-1`}>
-            {user?.nomBoutiqueSociete || 'Entreprise'}
+            {currentUser?.companyName || 'Entreprise'}
           </Text>
           <View style={tw`px-3 py-1 bg-black/20 rounded-full`}>
             <Text style={tw`text-sm text-black font-medium`}>
