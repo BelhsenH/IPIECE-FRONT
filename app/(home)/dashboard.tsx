@@ -630,37 +630,21 @@ const handleLogout = () => {
         <View style={tw`bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3`}>
           <View style={tw`flex-row items-center mb-2`}>
             <Ionicons name="folder-outline" size={16} color="#3B82F6" style={tw`mr-2`} />
-            <Text style={tw`text-sm font-medium text-blue-800`}>{t.categoryLabel || 'Catégorie:'}</Text>
+            <Text style={tw`text-sm font-semibold text-blue-800`}>{t.category || 'Catégorie'}</Text>
           </View>
           <View style={tw`flex-row items-center flex-wrap`}>
             {item.category && (
-              <>
-                <View style={tw`flex-row items-center bg-blue-100 rounded-full px-3 py-1 mr-2 mb-1`}>
-                  <CategoryIcon 
-                    category={item.category} 
-                    size={20} 
-                    style={tw`mr-2`} 
-                  />
-                  <Text style={tw`text-blue-700 text-sm font-medium`}>{item.category.name}</Text>
-                </View>
-                {item.subCategory && (
-                  <>
-                    <Ionicons name="chevron-forward" size={14} color="#6B7280" style={tw`mr-2`} />
-                    <View style={tw`flex-row items-center bg-blue-200 rounded-full px-3 py-1 mr-2 mb-1`}>
-                      <CategoryIcon 
-                        category={item.subCategory} 
-                        size={20} 
-                        style={tw`mr-2`} 
-                      />
-                      <Text style={tw`text-blue-800 text-sm font-medium`}>{item.subCategory.name}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={14} color="#6B7280" style={tw`mr-2`} />
-                  </>
-                )}
-                <Text style={tw`text-blue-900 text-sm font-semibold bg-blue-300 rounded-full px-3 py-1`}>
-                  {item.partName}
-                </Text>
-              </>
+              <View style={tw`flex-row items-center mr-2 mb-1`}>
+                <CategoryIcon category={item.category} size={16} style={tw`mr-1`} />
+                <Text style={tw`text-sm text-blue-700 font-medium`}>{item.category.name}</Text>
+                {item.subCategory && <Ionicons name="chevron-forward" size={14} color="#3B82F6" style={tw`mx-1`} />}
+              </View>
+            )}
+            {item.subCategory && (
+              <View style={tw`flex-row items-center`}>
+                <CategoryIcon category={item.subCategory} size={16} style={tw`mr-1`} />
+                <Text style={tw`text-sm text-blue-600`}>{item.subCategory.name}</Text>
+              </View>
             )}
           </View>
         </View>

@@ -117,6 +117,9 @@ class PartsService {
   }
 
   private async handleResponse(response: Response) {
+    const startTime = performance.now();
+    console.log('PartsService: handleResponse called with status:', response.status);
+    
     if (response.status === 401) {
       // Token expired or invalid, but don't clear storage immediately
       // Let the auth context handle token management
@@ -125,17 +128,38 @@ class PartsService {
     }
     
     if (!response.ok) {
+      console.log('PartsService: Response not OK, extracting error data...');
+      const errorStartTime = performance.now();
       const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      const errorEndTime = performance.now();
+      console.log(`PartsService: Error data extraction took ${(errorEndTime - errorStartTime).toFixed(2)}ms`);
+      console.error('PartsService: Error response data:', errorData);
       throw new Error(errorData.message || 'Request failed');
     }
     
-    return response.json();
+    console.log('PartsService: Response OK, parsing JSON...');
+    const jsonStartTime = performance.now();
+    const result = await response.json();
+    const jsonEndTime = performance.now();
+    console.log(`PartsService: JSON parsing took ${(jsonEndTime - jsonStartTime).toFixed(2)}ms`);
+    
+    const endTime = performance.now();
+    console.log(`PartsService: handleResponse completed in ${(endTime - startTime).toFixed(2)}ms`);
+    
+    return result;
   }
 
   // Get all parts requests (for providers to see available requests)
   async getPartsRequests(): Promise<PartsRequest[]> {
+    const startTime = performance.now();
+    console.log('PartsService: getPartsRequests started at', new Date().toISOString());
+    
     try {
+      const headersStartTime = performance.now();
       const headers = await this.getAuthHeaders();
+      const headersEndTime = performance.now();
+      console.log(`PartsService: getAuthHeaders took ${(headersEndTime - headersStartTime).toFixed(2)}ms`);
+      
       const url = `${config.apiUrl}/api/parts/requests?populate=category,subCategory`;
       
       if (__DEV__) {
@@ -143,17 +167,29 @@ class PartsService {
         console.log('PartsService: Headers:', { ...headers, Authorization: headers.Authorization ? '[REDACTED]' : '' });
       }
       
+      const fetchStartTime = performance.now();
+      console.log('PartsService: Starting fetch request...');
+      
       const response = await fetch(url, {
         method: 'GET',
         headers,
       });
+      
+      const fetchEndTime = performance.now();
+      console.log(`PartsService: Fetch request completed in ${(fetchEndTime - fetchStartTime).toFixed(2)}ms`);
 
       if (__DEV__) {
         console.log('PartsService: Response status:', response.status);
         console.log('PartsService: Response headers:', Object.fromEntries(response.headers.entries()));
       }
 
+      const responseStartTime = performance.now();
+      console.log('PartsService: Processing response...');
+      
       const data = await this.handleResponse(response);
+      
+      const responseEndTime = performance.now();
+      console.log(`PartsService: Response processing took ${(responseEndTime - responseStartTime).toFixed(2)}ms`);
       
       if (__DEV__) {
         console.log('PartsService: Received', Array.isArray(data) ? data.length : 'non-array', 'parts requests');
@@ -165,9 +201,13 @@ class PartsService {
         }
       }
       
+      const endTime = performance.now();
+      console.log(`PartsService: getPartsRequests completed successfully in ${(endTime - startTime).toFixed(2)}ms`);
+      
       return data;
     } catch (error: any) {
-      console.error('Error fetching parts requests:', error);
+      const endTime = performance.now();
+      console.error(`PartsService: Error in getPartsRequests after ${(endTime - startTime).toFixed(2)}ms:`, error);
       if (__DEV__) {
         console.error('PartsService: Detailed error:', {
           name: error.name,
@@ -407,11 +447,11 @@ class PartsService {
     uniqueViewers: number;
     interestedUsers: number;
     contactAttempts: number;
-    engagementEvents: Array<{
+    engagementEvents: {
       userId: string;
       eventType: string;
       timestamp: string;
-    }>;
+    }[];
   }> {
     try {
       const headers = await this.getAuthHeaders();

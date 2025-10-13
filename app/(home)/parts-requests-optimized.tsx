@@ -3,19 +3,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    Linking,
-    Modal,
-    RefreshControl,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Linking,
+  Modal,
+  RefreshControl,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,12 +30,29 @@ import ConversationService from '../../services/conversationService';
 import PartsService, { PartsRequest } from '../../services/partsService';
 
 const OptimizedPartsRequestsPage: React.FC = () => {
+  console.log('OptimizedPartsRequests: Component rendering at', new Date().toISOString());
+  
   const router = useRouter();
-  const { token } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { language, translations } = useLanguage();
   const { addListener } = useWebSocket();
   const t = translations[language];
   const hasInitialized = useRef(false);
+  
+  console.log('OptimizedPartsRequests: Component state - authenticated:', isAuthenticated, 'user:', !!user, 'language:', language);
+
+  // Debug: Check if token is actually stored
+  useEffect(() => {
+    const checkToken = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem('@auth_token');
+        console.log('OptimizedPartsRequests: Token in AsyncStorage:', storedToken ? 'Present' : 'Missing');
+      } catch (error) {
+        console.log('OptimizedPartsRequests: Error checking AsyncStorage token:', error);
+      }
+    };
+    checkToken();
+  }, []);
 
   // State management
   const [requests, setRequests] = useState<PartsRequest[]>([]);
@@ -52,18 +69,32 @@ const OptimizedPartsRequestsPage: React.FC = () => {
   const screenHeight = Dimensions.get('window').height;
 
   // Storage key for hidden requests
-  const HIDDEN_REQUESTS_KEY = `@hidden_requests_${token}`;
+  const HIDDEN_REQUESTS_KEY = `@hidden_requests_${user?._id || 'anonymous'}`;
 
   // Load hidden requests from AsyncStorage
   const loadHiddenRequests = useCallback(async () => {
+    const startTime = performance.now();
+    console.log('OptimizedPartsRequests: Loading hidden requests from AsyncStorage with key:', HIDDEN_REQUESTS_KEY);
+    
     try {
       const stored = await AsyncStorage.getItem(HIDDEN_REQUESTS_KEY);
+      const endTime = performance.now();
+      
+      console.log(`OptimizedPartsRequests: AsyncStorage.getItem completed in ${(endTime - startTime).toFixed(2)}ms`);
+      console.log('OptimizedPartsRequests: Stored hidden requests:', stored ? 'found' : 'none');
+      
       if (stored) {
         const hiddenArray = JSON.parse(stored);
+        console.log('OptimizedPartsRequests: Parsed hidden requests count:', hiddenArray.length);
         setHiddenRequests(new Set(hiddenArray));
+      } else {
+        console.log('OptimizedPartsRequests: No hidden requests found, setting empty set');
+        setHiddenRequests(new Set());
       }
     } catch (error) {
-      console.error('Error loading hidden requests:', error);
+      console.error('OptimizedPartsRequests: Error loading hidden requests:', error);
+      console.error('OptimizedPartsRequests: Error type:', typeof error);
+      setHiddenRequests(new Set());
     }
   }, [HIDDEN_REQUESTS_KEY]);
 
@@ -129,34 +160,57 @@ const OptimizedPartsRequestsPage: React.FC = () => {
 
   // Optimized load requests function with timeout and validation
   const loadRequests = useCallback(async () => {
-    if (!token) return;
+    if (!isAuthenticated) {
+      console.log('OptimizedPartsRequests: Not authenticated, skipping loadRequests');
+      return;
+    }
+
+    const startTime = performance.now();
+    console.log('OptimizedPartsRequests: Starting loadRequests at', new Date().toISOString());
+    console.log('OptimizedPartsRequests: Authenticated:', isAuthenticated, 'User ID:', user?._id);
 
     try {
-      console.log('OptimizedPartsRequests: Starting loadRequests...');
-      
       // Add timeout to prevent hanging (8 seconds for faster feedback)
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 8000)
+        setTimeout(() => {
+          console.log('OptimizedPartsRequests: Request timeout after 8 seconds');
+          reject(new Error('Timeout'));
+        }, 8000)
       );
       
+      console.log('OptimizedPartsRequests: Calling PartsService.getPartsRequests()');
+      const serviceStartTime = performance.now();
       const requestPromise = PartsService.getPartsRequests();
       
       const allRequests = await Promise.race([requestPromise, timeoutPromise]) as PartsRequest[];
+      const serviceEndTime = performance.now();
+      
+      console.log(`OptimizedPartsRequests: PartsService.getPartsRequests() completed in ${(serviceEndTime - serviceStartTime).toFixed(2)}ms`);
+      console.log('OptimizedPartsRequests: Raw response type:', typeof allRequests);
+      console.log('OptimizedPartsRequests: Raw response is array:', Array.isArray(allRequests));
       
       // Validate the requests data structure
       if (!Array.isArray(allRequests)) {
         console.error('OptimizedPartsRequests: Expected array but received:', typeof allRequests);
+        console.error('OptimizedPartsRequests: Response content:', allRequests);
         setRequests([]);
         setFilteredRequests([]);
         return;
       }
       
-      console.log('OptimizedPartsRequests: Loaded', allRequests.length, 'requests');
+      const endTime = performance.now();
+      console.log(`OptimizedPartsRequests: Successfully loaded ${allRequests.length} requests in ${(endTime - startTime).toFixed(2)}ms`);
+      console.log('OptimizedPartsRequests: First request sample:', allRequests[0] || 'No requests available');
+      
       setRequests(allRequests);
       setFilteredRequests(allRequests);
       
     } catch (error: any) {
-      console.error('OptimizedPartsRequests: Error loading requests:', error);
+      const endTime = performance.now();
+      console.error(`OptimizedPartsRequests: Error loading requests after ${(endTime - startTime).toFixed(2)}ms:`, error);
+      console.error('OptimizedPartsRequests: Error type:', typeof error);
+      console.error('OptimizedPartsRequests: Error message:', error?.message);
+      console.error('OptimizedPartsRequests: Error stack:', error?.stack);
       
       // Only show alert for non-timeout and non-auth errors to avoid annoying users
       if (!error?.message?.includes('Timeout') && error.message !== 'Unauthorized') {
@@ -170,18 +224,26 @@ const OptimizedPartsRequestsPage: React.FC = () => {
       setRequests([]);
       setFilteredRequests([]);
     }
-  }, [token, language, t.error]);
+  }, [isAuthenticated, user?._id, language, t.error]);
 
   // Filter requests based on search and hidden items
   const filterRequests = useCallback(() => {
+    const startTime = performance.now();
+    console.log('OptimizedPartsRequests: Starting filterRequests with', requests.length, 'total requests');
+    console.log('OptimizedPartsRequests: Hidden requests count:', hiddenRequests.size);
+    console.log('OptimizedPartsRequests: Search query:', searchQuery);
+
     let filtered = requests;
 
     // Filter out hidden requests
+    const beforeHiddenFilter = filtered.length;
     filtered = filtered.filter(r => !hiddenRequests.has(r._id));
+    console.log('OptimizedPartsRequests: After hidden filter:', filtered.length, 'requests (removed', beforeHiddenFilter - filtered.length, ')');
 
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
+      const beforeSearchFilter = filtered.length;
       filtered = filtered.filter(r =>
         r.partName.toLowerCase().includes(query) ||
         r.requester?.firstName?.toLowerCase().includes(query) ||
@@ -189,34 +251,66 @@ const OptimizedPartsRequestsPage: React.FC = () => {
         r.vehicleInfo?.brand?.toLowerCase().includes(query) ||
         r.vehicleInfo?.model?.toLowerCase().includes(query)
       );
+      console.log('OptimizedPartsRequests: After search filter:', filtered.length, 'requests (removed', beforeSearchFilter - filtered.length, ')');
     }
+
+    const endTime = performance.now();
+    console.log(`OptimizedPartsRequests: filterRequests completed in ${(endTime - startTime).toFixed(2)}ms`);
+    console.log('OptimizedPartsRequests: Final filtered count:', filtered.length);
 
     setFilteredRequests(filtered);
   }, [requests, searchQuery, hiddenRequests]);
 
   // Initialization effect
   useEffect(() => {
-    if (hasInitialized.current) return;
+    if (hasInitialized.current) {
+      console.log('OptimizedPartsRequests: Already initialized, skipping');
+      return;
+    }
+
+    // Wait for auth state to be determined
+    if (!isAuthenticated) {
+      console.log('OptimizedPartsRequests: Not authenticated yet, waiting...');
+      return;
+    }
     
     const initializeOptimizedPartsRequests = async () => {
+      const initStartTime = performance.now();
+      console.log('OptimizedPartsRequests: Starting initialization at', new Date().toISOString());
+      console.log('OptimizedPartsRequests: Auth state - authenticated:', isAuthenticated, 'user:', user?._id);
+      
       hasInitialized.current = true;
       setLoading(true);
       
       try {
         // Load hidden requests first
+        console.log('OptimizedPartsRequests: Loading hidden requests...');
+        const hiddenStartTime = performance.now();
         await loadHiddenRequests();
+        const hiddenEndTime = performance.now();
+        console.log(`OptimizedPartsRequests: Hidden requests loaded in ${(hiddenEndTime - hiddenStartTime).toFixed(2)}ms`);
         
         // Then load requests
+        console.log('OptimizedPartsRequests: Loading parts requests...');
+        const requestsStartTime = performance.now();
         await loadRequests();
+        const requestsEndTime = performance.now();
+        console.log(`OptimizedPartsRequests: Parts requests loaded in ${(requestsEndTime - requestsStartTime).toFixed(2)}ms`);
+        
+        const initEndTime = performance.now();
+        console.log(`OptimizedPartsRequests: Total initialization completed in ${(initEndTime - initStartTime).toFixed(2)}ms`);
+        
       } catch (error) {
         console.error('OptimizedPartsRequests: Error during initialization:', error);
+        console.error('OptimizedPartsRequests: Initialization error type:', typeof error);
       } finally {
         setLoading(false);
+        console.log('OptimizedPartsRequests: Loading state set to false');
       }
     };
     
     initializeOptimizedPartsRequests();
-  }, [loadHiddenRequests, loadRequests]);
+  }, [loadHiddenRequests, loadRequests, isAuthenticated, user?._id]);
 
   // Filter effect
   useEffect(() => {
@@ -225,30 +319,43 @@ const OptimizedPartsRequestsPage: React.FC = () => {
 
   // WebSocket listener for real-time updates
   useEffect(() => {
+    console.log('OptimizedPartsRequests: Setting up WebSocket listener');
+    
     const unsubscribe = addListener((message) => {
+      console.log('OptimizedPartsRequests: WebSocket message received:', message.type);
       switch (message.type) {
         case 'new_message':
+          console.log('OptimizedPartsRequests: New message received, refreshing requests list');
           // Refresh the list to update last contacted times
           loadRequests();
           break;
         default:
+          console.log('OptimizedPartsRequests: Unhandled WebSocket message type:', message.type);
           break;
       }
     });
 
+    console.log('OptimizedPartsRequests: WebSocket listener set up successfully');
     return unsubscribe;
   }, [addListener, loadRequests]);
 
   // Optimized refresh function
   const onRefresh = useCallback(async () => {
+    const refreshStartTime = performance.now();
+    console.log('OptimizedPartsRequests: Starting manual refresh at', new Date().toISOString());
+    
     setRefreshing(true);
     try {
       await loadRequests();
+      const refreshEndTime = performance.now();
+      console.log(`OptimizedPartsRequests: Manual refresh completed in ${(refreshEndTime - refreshStartTime).toFixed(2)}ms`);
     } catch (error) {
       console.error('OptimizedPartsRequests: Error during refresh:', error);
+      console.error('OptimizedPartsRequests: Refresh error type:', typeof error);
       // Don't show error to user for refresh failures, just log them
     } finally {
       setRefreshing(false);
+      console.log('OptimizedPartsRequests: Refresh state set to false');
     }
   }, [loadRequests]);
 
@@ -261,12 +368,23 @@ const OptimizedPartsRequestsPage: React.FC = () => {
 
   // Start conversation function
   const startConversation = async (request: PartsRequest) => {
-    if (!token) return;
+    if (!isAuthenticated) {
+      console.log('OptimizedPartsRequests: Not authenticated for starting conversation');
+      return;
+    }
+    
+    const conversationStartTime = performance.now();
+    console.log('OptimizedPartsRequests: Starting conversation with requester for request:', request._id);
     
     try {
       const result = await ConversationService.initiateConversationWithRequester(request._id);
+      const conversationEndTime = performance.now();
+      
+      console.log(`OptimizedPartsRequests: Conversation initiation completed in ${(conversationEndTime - conversationStartTime).toFixed(2)}ms`);
+      console.log('OptimizedPartsRequests: Conversation result:', result);
       
       if (result.isExisting) {
+        console.log('OptimizedPartsRequests: Existing conversation found');
         Alert.alert(
           t.conversationExists || 'Conversation existante', 
           result.message,
@@ -279,6 +397,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
           ]
         );
       } else {
+        console.log('OptimizedPartsRequests: New conversation created');
         // New conversation created, navigate to it
         Alert.alert(
           t.conversationStarted || 'Conversation démarrée',
@@ -292,7 +411,8 @@ const OptimizedPartsRequestsPage: React.FC = () => {
         );
       }
     } catch (error) {
-      console.error('Error starting conversation:', error);
+      console.error('OptimizedPartsRequests: Error starting conversation:', error);
+      console.error('OptimizedPartsRequests: Conversation error type:', typeof error);
       Alert.alert(t.error || 'Erreur', 'Impossible de démarrer la conversation');
     }
   };
@@ -614,6 +734,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
 
   // Loading state
   if (loading) {
+    console.log('OptimizedPartsRequests: Rendering loading state');
     return (
       <SafeAreaView style={tw`flex-1 bg-gray-50`}>
         <View style={tw`bg-blue-900 p-4 flex-row justify-between items-center shadow-lg`}>
@@ -640,6 +761,8 @@ const OptimizedPartsRequestsPage: React.FC = () => {
     );
   }
 
+  console.log('OptimizedPartsRequests: Rendering main content with', filteredRequests.length, 'filtered requests out of', requests.length, 'total requests');
+  
   return (
     <GestureHandlerRootView style={tw`flex-1`}>
       <SafeAreaView style={tw`flex-1 bg-gray-50`}>
