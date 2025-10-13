@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   FlatList,
   Image,
   Linking,
@@ -14,6 +15,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 
@@ -45,6 +47,10 @@ const Dashboard: React.FC = () => {
   });
   const [pendingRequests, setPendingRequests] = useState<PartsRequest[]>([]);
   const [currentUser, setCurrentUser] = useState(user); // Local user state for immediate updates
+  
+  // Hidden requests state for swipe functionality
+  const [hiddenRequests, setHiddenRequests] = useState<Set<string>>(new Set());
+  const HIDDEN_REQUESTS_KEY = `@hidden_dashboard_requests_${user?._id || 'default'}`;
 
   // Load user profile data
   const loadUserProfile = useCallback(async () => {
@@ -274,6 +280,43 @@ const Dashboard: React.FC = () => {
     }
   }, [loadUserProfile, loadStats, loadConversations]);
 
+  // Load hidden requests from AsyncStorage
+  const loadHiddenRequests = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem(HIDDEN_REQUESTS_KEY);
+      if (stored) {
+        const hiddenArray = JSON.parse(stored);
+        setHiddenRequests(new Set(hiddenArray));
+      }
+    } catch (error) {
+      console.error('Dashboard: Error loading hidden requests:', error);
+    }
+  }, [HIDDEN_REQUESTS_KEY]);
+
+  // Save hidden requests to AsyncStorage
+  const saveHiddenRequests = useCallback(async (hidden: Set<string>) => {
+    try {
+      const hiddenArray = Array.from(hidden);
+      await AsyncStorage.setItem(HIDDEN_REQUESTS_KEY, JSON.stringify(hiddenArray));
+    } catch (error) {
+      console.error('Dashboard: Error saving hidden requests:', error);
+    }
+  }, [HIDDEN_REQUESTS_KEY]);
+
+  // Hide request function
+  const hideRequest = useCallback(async (requestId: string) => {
+    const newHiddenRequests = new Set([...hiddenRequests, requestId]);
+    setHiddenRequests(newHiddenRequests);
+    await saveHiddenRequests(newHiddenRequests);
+  }, [hiddenRequests, saveHiddenRequests]);
+
+  // Load hidden requests on component mount
+  useEffect(() => {
+    if (user?._id) {
+      loadHiddenRequests();
+    }
+  }, [user?._id, loadHiddenRequests]);
+
 // assuming you're using expo-router
 
 const handleLogout = () => {
@@ -420,7 +463,64 @@ const handleLogout = () => {
     }
   };
 
-  const renderNotification = ({ item }: { item: PartsRequest }) => (
+  // Swipeable Notification Card Component
+  const SwipeableNotificationCard = ({ item }: { item: PartsRequest }) => {
+    const translateX = new Animated.Value(0);
+    const [isSwipedOut, setIsSwipedOut] = useState(false);
+
+    const onGestureEvent = Animated.event(
+      [{ nativeEvent: { translationX: translateX } }],
+      { useNativeDriver: true }
+    );
+
+    const onHandlerStateChange = (event: any) => {
+      if (event.nativeEvent.state === State.END) {
+        const { translationX, velocityX } = event.nativeEvent;
+        
+        // If swiped far enough or with enough velocity, hide the request
+        if (Math.abs(translationX) > 150 || Math.abs(velocityX) > 1000) {
+          // Animate out completely
+          Animated.timing(translateX, {
+            toValue: translationX > 0 ? 500 : -500,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => {
+            setIsSwipedOut(true);
+            hideRequest(item._id);
+          });
+        } else {
+          // Snap back to center
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      }
+    };
+
+    if (isSwipedOut) {
+      return null;
+    }
+
+    return (
+      <PanGestureHandler
+        onGestureEvent={onGestureEvent}
+        onHandlerStateChange={onHandlerStateChange}
+        activeOffsetX={[-10, 10]}
+      >
+        <Animated.View
+          style={[
+            { transform: [{ translateX }] },
+            tw`mb-4`
+          ]}
+        >
+          {renderNotificationCard(item)}
+        </Animated.View>
+      </PanGestureHandler>
+    );
+  };
+
+  const renderNotificationCard = (item: PartsRequest) => (
     <View style={[
       tw`bg-white rounded-2xl p-5 mb-4`,
       {
@@ -666,7 +766,8 @@ const handleLogout = () => {
   }
 
   return (
-    <SafeAreaView style={[tw`flex-1 bg-gray-50`, { position: 'relative' }]}>
+    <GestureHandlerRootView style={tw`flex-1`}>
+      <SafeAreaView style={[tw`flex-1 bg-gray-50`, { position: 'relative' }]}>
       {/* Header */}
       <View style={tw`bg-blue-900 p-4 flex-row justify-between items-center shadow-lg`}>
         <View style={tw`flex-row items-center`}>
@@ -801,13 +902,23 @@ const handleLogout = () => {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
+        {/*<TouchableOpacity
           style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-blue-800`}
           onPress={() => { setIsSidebarOpen(false); router.push('/(home)/parts-requests'); }}
         >
           <Ionicons name="list-outline" size={20} color="white" style={tw`mr-3`} />
           <Text style={tw`text-white text-base font-medium`}>
             {t.allRequests || (language === 'fr' ? 'Toutes les demandes' : 'جميع الطلبات')}
+          </Text>
+        </TouchableOpacity>*/}
+
+        <TouchableOpacity
+          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-blue-700`}
+          onPress={() => { setIsSidebarOpen(false); router.push('/(home)/parts-requests-optimized'); }}
+        >
+          <Ionicons name="flash-outline" size={20} color="white" style={tw`mr-3`} />
+          <Text style={tw`text-white text-base font-medium`}>
+            {language === 'fr' ? 'Demandes Des pièces' : 'طلبات القطع'}
           </Text>
         </TouchableOpacity>
 
@@ -924,7 +1035,7 @@ const handleLogout = () => {
           <View style={tw`flex-row flex-wrap gap-3`}>
             <TouchableOpacity
               style={tw`flex-1 bg-blue-600 rounded-xl p-4 items-center min-w-32`}
-              onPress={() => router.push('/(home)/parts-requests')}
+              onPress={() => router.push('/(home)/parts-requests-optimized')}
             >
               <Ionicons name="list" size={24} color="white" />
               <Text style={tw`text-white font-semibold mt-2 text-center`}>{t.viewAllRequestsButton || 'Voir toutes\nles demandes'}</Text>
@@ -944,14 +1055,26 @@ const handleLogout = () => {
         <View style={tw`px-4 mb-6`}>
           <View style={tw`flex-row items-center justify-between mb-4`}>
             <Text style={tw`text-xl font-bold text-gray-900`}>
-              {t.pendingRequestsTitle || 'Demandes en attente'} ({pendingRequests.length})
+              {t.pendingRequestsTitle || 'Demandes en attente'} ({pendingRequests.filter(request => !hiddenRequests.has(request._id)).length})
             </Text>
-            <TouchableOpacity onPress={() => router.push('/(home)/parts-requests')}>
+            <TouchableOpacity onPress={() => router.push('/(home)/parts-requests-optimized')}>
               <Text style={tw`text-blue-600 font-semibold`}>{t.seeAll || 'Voir tout'}</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Swipe instruction tooltip */}
+          {pendingRequests.filter(request => !hiddenRequests.has(request._id)).length > 0 && (
+            <View style={tw`bg-blue-100 border border-blue-200 rounded-lg p-3 mb-4`}>
+              <View style={tw`flex-row items-center`}>
+                <Ionicons name="information-circle" size={16} color="#3B82F6" style={tw`mr-2`} />
+                <Text style={tw`text-sm text-blue-800 flex-1`}>
+                  {t.swipeToHide || 'Glissez à gauche ou à droite pour masquer une demande'}
+                </Text>
+              </View>
+            </View>
+          )}
           
-          {pendingRequests.length === 0 ? (
+          {pendingRequests.filter(request => !hiddenRequests.has(request._id)).length === 0 ? (
             <View style={tw`bg-white rounded-xl p-8 items-center`}>
               <Ionicons name="clipboard-outline" size={48} color="#D1D5DB" />
               <Text style={tw`text-gray-500 text-lg font-semibold mt-4`}>
@@ -966,12 +1089,12 @@ const handleLogout = () => {
             </View>
           ) : (
             <FlatList
-              data={pendingRequests.slice(0, 3)}
+              data={pendingRequests.filter(request => !hiddenRequests.has(request._id)).slice(0, 3)}
               renderItem={({ item, index }) => (
                 <View key={item._id}>
-                  {renderNotification({ item })}
+                  <SwipeableNotificationCard item={item} />
                   {/* Enhanced visual separator */}
-                  {index < Math.min(pendingRequests.length, 3) - 1 && (
+                  {index < Math.min(pendingRequests.filter(request => !hiddenRequests.has(request._id)).length, 3) - 1 && (
                     <View style={tw`flex-row items-center justify-center mx-6 my-3`}>
                       <View style={tw`flex-1 h-px bg-gray-200`} />
                       <View style={tw`mx-2 w-1 h-1 bg-blue-300 rounded-full`} />
@@ -987,6 +1110,7 @@ const handleLogout = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 

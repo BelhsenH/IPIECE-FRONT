@@ -127,7 +127,7 @@ class AuthService {
       if (!response.ok) {
         return {
           success: false,
-          error: data.message || 'An error occurred',
+          error: data.error || data.message || 'An error occurred',
         };
       }
 
@@ -180,7 +180,7 @@ class AuthService {
       if (!response.ok) {
         return {
           success: false,
-          error: data.message || 'Login failed',
+          error: data.error || data.message || 'Login failed',
         };
       }
 
@@ -270,13 +270,7 @@ class AuthService {
 }
 
 export const authService = new AuthService();
-export type { 
-  RegisterData, 
-  LoginData, 
-  VerifyPhoneData, 
-  ForgotPasswordData, 
-  ResetPasswordData, 
-  ChangePasswordData, 
-  UpdateProfileData,
-  LoginResponse
+export type {
+    ChangePasswordData, ForgotPasswordData, LoginData, LoginResponse, RegisterData, ResetPasswordData, UpdateProfileData, VerifyPhoneData
 };
+

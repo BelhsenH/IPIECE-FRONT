@@ -1,7 +1,7 @@
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import StepIndicator from 'react-native-step-indicator';
 import tw from 'twrnc';
 import OpenStreetMapView from '../../components/modern/OpenStreetMapView';
@@ -214,10 +214,13 @@ const SignUp: React.FC = () => {
         phoneNumber: fullPhoneNumber,
         email: formData.email,
         typesPieces: formData.typesPieces,
-        marquesSpecialises: formData.marquesSpecialises,
+        marqueSpecialise: formData.marquesSpecialises.join(', '), // Convert array to comma-separated string
         raisonSociale: formData.raisonSociale,
         password: formData.password,
       };
+
+      console.log('[SignUp] Registration data to send:', registrationData);
+      console.log('[SignUp] Form data state:', formData);
 
       const response = await authService.register(registrationData);
 
@@ -236,15 +239,55 @@ const SignUp: React.FC = () => {
           ]
         );
       } else {
-        Alert.alert(
-          t.error || 'Error',
-          response.error || 'Registration failed'
-        );
+        const errorMessage = response.error || 'Registration failed';
+        console.log('[SignUp] Error message received:', errorMessage);
+        
+        if (errorMessage.toLowerCase().includes('already exists') || 
+            errorMessage.toLowerCase().includes('user already exists') ||
+            errorMessage.toLowerCase().includes('ipiece user already exists')) {
+          Alert.alert(
+            t.error || 'Error',
+            t.userAlreadyExists || 'Un compte avec ce numéro de téléphone ou cette adresse e-mail existe déjà. Veuillez essayer de vous connecter ou utiliser un autre numéro/e-mail.',
+            [
+              { text: t.cancel || 'Cancel', style: 'cancel' },
+              { 
+                text: t.login || 'Login', 
+                onPress: () => router.push('/(auth)/login')
+              }
+            ]
+          );
+        } else if (errorMessage.toLowerCase().includes('invalid email') || 
+                   errorMessage.toLowerCase().includes('email')) {
+          Alert.alert(
+            t.error || 'Error',
+            t.invalidEmail || 'Veuillez saisir une adresse e-mail valide.'
+          );
+        } else if (errorMessage.toLowerCase().includes('phone') || 
+                   errorMessage.toLowerCase().includes('number')) {
+          Alert.alert(
+            t.error || 'Error',
+            t.invalidPhone || 'Veuillez saisir un numéro de téléphone valide.'
+          );
+        } else if (errorMessage.toLowerCase().includes('password')) {
+          Alert.alert(
+            t.error || 'Error',
+            t.passwordError || 'Le mot de passe ne respecte pas les exigences. Veuillez vous assurer qu\'il contient au moins 6 caractères.'
+          );
+        } else {
+          Alert.alert(
+            t.error || 'Error',
+            errorMessage
+          );
+        }
       }
     } catch (error) {
+      console.error('Registration error:', error);
+      console.log('[SignUp] Caught error type:', typeof error);
+      console.log('[SignUp] Error details:', error);
+      
       Alert.alert(
         t.error || 'Error',
-        'An unexpected error occurred during registration'
+        t.networkError || 'Erreur réseau. Veuillez vérifier votre connexion et réessayer.'
       );
     } finally {
       setIsLoading(false);
@@ -530,7 +573,16 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={tw`flex-grow bg-white p-5 items-center justify-center min-h-full`}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: '#FFFFFF' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView 
+        contentContainerStyle={tw`flex-grow bg-white p-5 items-center justify-center min-h-full`}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       <View style={tw`w-full items-end mb-4`}>
         <TouchableOpacity onPress={toggleLanguage} style={tw`p-2 bg-gray-100 rounded-lg`}>
           <Text style={tw`text-base font-bold text-blue-900`}>
@@ -591,6 +643,7 @@ const SignUp: React.FC = () => {
         </View>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

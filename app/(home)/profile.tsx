@@ -262,10 +262,10 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={tw`flex-grow bg-gray-50 items-center justify-center min-h-full`}>
+    <ScrollView contentContainerStyle={tw`flex-grow bg-gray-50 min-h-full`}>
       {/* Header with gradient background */}
-      <View style={tw`w-full bg-gradient-to-br from-blue-600 to-blue-800 pt-12 pb-6 px-5 shadow-lg`}>
-        <View style={tw`flex-row items-center justify-between mb-4`}>
+      <View style={tw`w-full bg-gradient-to-br from-blue-600 to-blue-800 pt-12 pb-8 px-5 shadow-lg`}>
+        <View style={tw`flex-row items-center justify-between mb-6`}>
           <TouchableOpacity
             onPress={() => router.back()}
             style={tw`flex-row items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm shadow-sm`}
@@ -286,19 +286,15 @@ const Profile: React.FC = () => {
         </View>
         
         {/* Profile Header Info */}
-        <View style={tw`items-center mt-4`}>
-          <View style={tw`w-24 h-24 bg-white/20 rounded-full items-center justify-center mb-3 shadow-lg`}>
-            <Text style={tw`text-3xl text-white font-bold`}>
-              {currentUser?.firstName?.charAt(0)?.toUpperCase() || 'U'}
-            </Text>
-          </View>
+        <View style={tw`items-center`}>
+          
           <Text style={tw`text-2xl font-bold text-black text-center mb-1`}>
             {currentUser?.firstName || 'Utilisateur'}
           </Text>
-          <Text style={tw`text-base text-black/80 text-center mb-1`}>
+          <Text style={tw`text-base text-black/90 text-center mb-2`}>
             {currentUser?.companyName || 'Entreprise'}
           </Text>
-          <View style={tw`px-3 py-1 bg-black/20 rounded-full`}>
+          <View style={tw`px-4 py-2 bg-white/20 rounded-full border border-white/30`}>
             <Text style={tw`text-sm text-black font-medium`}>
               {t.supplier || (language === 'fr' ? 'Fournisseur iPiece' : 'مورد iPiece')}
             </Text>
@@ -307,270 +303,365 @@ const Profile: React.FC = () => {
       </View>
 
       {/* Main Content Container */}
-      <View style={tw`w-full px-5 -mt-6`}>
-        {/* Content Cards */}
-        <View style={tw`bg-white rounded-2xl shadow-lg p-6 mb-6`}>
-          <Text style={tw`text-2xl font-bold text-gray-800 mb-6 text-center`}>
-            {t.profileTitle || 'Mon Profil'}
-          </Text>
-
-          {/* Business Information */}
-          <View style={tw`mb-6`}>
-            <View style={tw`flex-row items-center mb-4`}>
-              <View style={tw`w-1 h-6 bg-blue-600 rounded-full mr-3`} />
-              <Text style={tw`text-lg font-semibold text-gray-800`}>
+      <View style={tw`px-5 -mt-6`}>
+        {/* Business Information Card */}
+        <View style={tw`bg-white rounded-2xl shadow-lg p-6 mb-4`}>
+          <View style={tw`flex-row items-center justify-between mb-6`}>
+            <View style={tw`flex-row items-center`}>
+              
+              <Text style={tw`text-xl font-bold text-gray-800`}>
                 {t.businessInfo || "Informations commerciales"}
               </Text>
             </View>
+            {!isEditing && (
+              <TouchableOpacity 
+                onPress={() => setIsEditing(true)}
+                style={tw`p-2 rounded-full bg-blue-50`}
+              >
+                <Text style={tw`text-blue-600 text-base`}>✏️</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-            {/* Business Type */}
-            <Text style={tw`text-sm font-medium text-gray-600 mb-3 ml-4`}>
+          {/* Business Type Display */}
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-sm font-medium text-gray-500 mb-3`}>
               {t.businessType || "Type d'entreprise"}
             </Text>
-            <View style={tw`flex-row justify-between mb-4 px-1`}>
-              <TouchableOpacity
-                style={tw`flex-1 h-12 rounded-xl justify-center items-center mx-1 border-2 ${formData.type === 'boutique' ? 'bg-blue-600 border-blue-600' : 'bg-gray-50 border-gray-200'} ${!isEditing ? 'opacity-60' : ''}`}
-                onPress={() => handleTypeChange('boutique')}
-                disabled={!isEditing}
-              >
-                <Text style={tw`text-base font-medium ${formData.type === 'boutique' ? 'text-white' : 'text-gray-700'}`}>
-                  {t.boutique || "Boutique"}
+            {isEditing ? (
+              <View style={tw`flex-row gap-3`}>
+                <TouchableOpacity
+                  style={tw`flex-1 h-12 rounded-xl justify-center items-center border-2 ${formData.type === 'boutique' ? 'bg-blue-600 border-blue-600' : 'bg-gray-50 border-gray-200'}`}
+                  onPress={() => handleTypeChange('boutique')}
+                >
+                  <Text style={tw`text-base font-medium ${formData.type === 'boutique' ? 'text-white' : 'text-gray-700'}`}>
+                    {t.boutique || "Boutique"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={tw`flex-1 h-12 rounded-xl justify-center items-center border-2 ${formData.type === 'societe' ? 'bg-blue-600 border-blue-600' : 'bg-gray-50 border-gray-200'}`}
+                  onPress={() => handleTypeChange('societe')}
+                >
+                  <Text style={tw`text-base font-medium ${formData.type === 'societe' ? 'text-white' : 'text-gray-700'}`}>
+                    {t.societe || "Société"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={tw`px-4 py-3 bg-blue-50 rounded-xl`}>
+                <Text style={tw`text-blue-800 font-semibold text-base`}>
+                  {formData.type === 'boutique' ? (t.boutique || "Boutique") : (t.societe || "Société")}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={tw`flex-1 h-12 rounded-xl justify-center items-center mx-1 border-2 ${formData.type === 'societe' ? 'bg-blue-600 border-blue-600' : 'bg-gray-50 border-gray-200'} ${!isEditing ? 'opacity-60' : ''}`}
-                onPress={() => handleTypeChange('societe')}
-                disabled={!isEditing}
-              >
-                <Text style={tw`text-base font-medium ${formData.type === 'societe' ? 'text-white' : 'text-gray-700'}`}>
-                  {t.societe || "Société"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+            )}
+          </View>
 
-            {/* Form Inputs */}
-            <View style={tw`space-y-4`}>
-              <View>
-                <Text style={tw`text-sm font-medium text-gray-600 mb-2 ml-1`}>
-                  {t.businessNamePlaceholder || "Nom de la boutique/société"}
-                </Text>
+          {/* Business Details */}
+          <View style={tw`space-y-4`}>
+            {/* Company Name */}
+            <View>
+              <Text style={tw`text-sm font-medium text-gray-500 mb-2`}>
+                {t.businessNamePlaceholder || "Nom de l'entreprise"}
+              </Text>
+              {isEditing ? (
                 <TextInput
-                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 ${isEditing ? 'border-gray-200 focus:border-blue-500' : 'border-gray-100'} ${!isEditing ? 'opacity-60' : ''}`}
+                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 border-gray-200 focus:border-blue-500`}
                   placeholder={t.businessNamePlaceholder || "Nom de la boutique/société"}
                   value={formData.nomBoutiqueSociete}
                   onChangeText={(text) => setFormData({ ...formData, nomBoutiqueSociete: text })}
                   placeholderTextColor="#9CA3AF"
-                  editable={isEditing}
                 />
-              </View>
+              ) : (
+                <View style={tw`px-4 py-4 bg-gray-50 rounded-xl`}>
+                  <Text style={tw`text-gray-800 text-base font-medium`}>
+                    {formData.nomBoutiqueSociete || '---'}
+                  </Text>
+                </View>
+              )}
+            </View>
 
-              <View>
-                <Text style={tw`text-sm font-medium text-gray-600 mb-2 ml-1`}>
-                  {t.managerNamePlaceholder || "Nom du gérant"}
-                </Text>
+            {/* Manager Name */}
+            <View>
+              <Text style={tw`text-sm font-medium text-gray-500 mb-2`}>
+                {t.managerNamePlaceholder || "Nom du gérant"}
+              </Text>
+              {isEditing ? (
                 <TextInput
-                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 ${isEditing ? 'border-gray-200 focus:border-blue-500' : 'border-gray-100'} ${!isEditing ? 'opacity-60' : ''}`}
+                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 border-gray-200 focus:border-blue-500`}
                   placeholder={t.managerNamePlaceholder || "Nom du gérant"}
                   value={formData.nomGerant}
                   onChangeText={(text) => setFormData({ ...formData, nomGerant: text })}
                   placeholderTextColor="#9CA3AF"
-                  editable={isEditing}
                 />
-              </View>
+              ) : (
+                <View style={tw`px-4 py-4 bg-gray-50 rounded-xl`}>
+                  <Text style={tw`text-gray-800 text-base font-medium`}>
+                    {formData.nomGerant || '---'}
+                  </Text>
+                </View>
+              )}
+            </View>
 
-              <View>
-                <Text style={tw`text-sm font-medium text-gray-600 mb-2 ml-1`}>
-                  {t.emailPlaceholder || "Email"}
-                </Text>
+            {/* Email */}
+            <View>
+              <Text style={tw`text-sm font-medium text-gray-500 mb-2`}>
+                {t.emailPlaceholder || "Email"}
+              </Text>
+              {isEditing ? (
                 <TextInput
-                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 ${isEditing ? 'border-gray-200 focus:border-blue-500' : 'border-gray-100'} ${!isEditing ? 'opacity-60' : ''}`}
+                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 border-gray-200 focus:border-blue-500`}
                   placeholder={t.emailPlaceholder || "Email"}
                   keyboardType="email-address"
                   value={formData.email}
                   onChangeText={(text) => setFormData({ ...formData, email: text })}
                   placeholderTextColor="#9CA3AF"
-                  editable={isEditing}
                   autoCapitalize="none"
                 />
-              </View>
+              ) : (
+                <View style={tw`px-4 py-4 bg-gray-50 rounded-xl flex-row items-center`}>
+                  <Text style={tw`text-blue-600 text-base mr-2`}>📧</Text>
+                  <Text style={tw`text-gray-800 text-base font-medium flex-1`}>
+                    {formData.email || '---'}
+                  </Text>
+                </View>
+              )}
+            </View>
 
-              <View>
-                <Text style={tw`text-sm font-medium text-gray-600 mb-2 ml-1`}>
-                  {t.phoneLabel || "Téléphone (8 chiffres)"}
-                </Text>
+            {/* Phone */}
+            <View>
+              <Text style={tw`text-sm font-medium text-gray-500 mb-2`}>
+                {t.phoneLabel || "Téléphone"}
+              </Text>
+              {isEditing ? (
                 <TextInput
-                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 ${isEditing ? 'border-gray-200 focus:border-blue-500' : 'border-gray-100'} ${!isEditing ? 'opacity-60' : ''}`}
+                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 border-gray-200 focus:border-blue-500`}
                   placeholder={t.phoneLabel || "Téléphone (8 chiffres)"}
                   keyboardType="phone-pad"
                   value={formData.phoneNumber}
                   onChangeText={(text) => setFormData({ ...formData, phoneNumber: text })}
                   placeholderTextColor="#9CA3AF"
-                  editable={isEditing}
                   maxLength={8}
                 />
-              </View>
+              ) : (
+                <View style={tw`px-4 py-4 bg-gray-50 rounded-xl flex-row items-center`}>
+                  <Text style={tw`text-green-600 text-base mr-2`}>📞</Text>
+                  <Text style={tw`text-gray-800 text-base font-medium flex-1`}>
+                    +216 {formData.phoneNumber || '---'}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
 
-        {/* Location Card */}
-        <View style={tw`bg-white rounded-2xl shadow-lg p-6 mb-6`}>
-          <View style={tw`flex-row items-center mb-4`}>
-            <View style={tw`w-1 h-6 bg-green-600 rounded-full mr-3`} />
-            <Text style={tw`text-lg font-semibold text-gray-800`}>
+        {/* Location Information Card */}
+        <View style={tw`bg-white rounded-2xl shadow-lg p-6 mb-4`}>
+          <View style={tw`flex-row items-center mb-6`}>
+            <View style={tw`w-10 h-10 bg-green-100 rounded-full items-center justify-center mr-3`}>
+              <Text style={tw`text-green-600 text-lg`}>📍</Text>
+            </View>
+            <Text style={tw`text-xl font-bold text-gray-800`}>
               {t.location || "Localisation"}
             </Text>
           </View>
           
           <View style={tw`space-y-4 mb-4`}>
+            {/* Address */}
             <View>
-              <Text style={tw`text-sm font-medium text-gray-600 mb-2 ml-1`}>
+              <Text style={tw`text-sm font-medium text-gray-500 mb-2`}>
                 {t.addressPlaceholder || "Adresse"}
               </Text>
-              <TextInput
-                style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 ${isEditing ? 'border-gray-200 focus:border-green-500' : 'border-gray-100'} ${!isEditing ? 'opacity-60' : ''}`}
-                placeholder={t.addressPlaceholder || "Adresse"}
-                value={formData.adresse}
-                onChangeText={(text) => setFormData({ ...formData, adresse: text })}
-                placeholderTextColor="#9CA3AF"
-                editable={isEditing}
-              />
+              {isEditing ? (
+                <TextInput
+                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 border-gray-200 focus:border-green-500`}
+                  placeholder={t.addressPlaceholder || "Adresse"}
+                  value={formData.adresse}
+                  onChangeText={(text) => setFormData({ ...formData, adresse: text })}
+                  placeholderTextColor="#9CA3AF"
+                />
+              ) : (
+                <View style={tw`px-4 py-4 bg-gray-50 rounded-xl`}>
+                  <Text style={tw`text-gray-800 text-base font-medium`}>
+                    {formData.adresse || '---'}
+                  </Text>
+                </View>
+              )}
             </View>
 
+            {/* Coverage Area */}
             <View>
-              <Text style={tw`text-sm font-medium text-gray-600 mb-2 ml-1`}>
+              <Text style={tw`text-sm font-medium text-gray-500 mb-2`}>
                 {t.coverageAreaPlaceholder || "Zone géographique couverte"}
               </Text>
-              <TextInput
-                style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 ${isEditing ? 'border-gray-200 focus:border-green-500' : 'border-gray-100'} ${!isEditing ? 'opacity-60' : ''}`}
-                placeholder={t.coverageAreaPlaceholder || "Zone géographique couverte"}
-                value={formData.zoneGeoCouverte}
-                onChangeText={(text) => setFormData({ ...formData, zoneGeoCouverte: text })}
-                placeholderTextColor="#9CA3AF"
-                editable={isEditing}
-              />
+              {isEditing ? (
+                <TextInput
+                  style={tw`w-full h-14 bg-gray-50 rounded-xl px-4 text-gray-800 border-2 border-gray-200 focus:border-green-500`}
+                  placeholder={t.coverageAreaPlaceholder || "Zone géographique couverte"}
+                  value={formData.zoneGeoCouverte}
+                  onChangeText={(text) => setFormData({ ...formData, zoneGeoCouverte: text })}
+                  placeholderTextColor="#9CA3AF"
+                />
+              ) : (
+                <View style={tw`px-4 py-4 bg-gray-50 rounded-xl`}>
+                  <Text style={tw`text-gray-800 text-base font-medium`}>
+                    {formData.zoneGeoCouverte || '---'}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
           
-          <OpenStreetMapView
-            latitude={formData.latitude}
-            longitude={formData.longitude}
-            onLocationSelect={isEditing ? handleLocationSelect : undefined}
-            style={tw`w-full h-64 rounded-2xl overflow-hidden shadow-md border border-gray-200`}
-          />
-          {isEditing && (
-            <Text style={tw`text-xs text-gray-500 mt-2 text-center`}>
-              {t.tapToSelectLocation || "Appuyez sur la carte pour sélectionner votre emplacement"}
+          <View style={tw`mb-2`}>
+            <Text style={tw`text-sm font-medium text-gray-500 mb-3`}>
+              {t.mapLocation || "Position sur la carte"}
             </Text>
-          )}
+            <OpenStreetMapView
+              latitude={formData.latitude}
+              longitude={formData.longitude}
+              onLocationSelect={isEditing ? handleLocationSelect : undefined}
+              style={tw`w-full h-48 rounded-xl overflow-hidden shadow-sm border border-gray-200`}
+            />
+            {isEditing && (
+              <Text style={tw`text-xs text-gray-500 mt-2 text-center`}>
+                {t.tapToSelectLocation || "Appuyez sur la carte pour sélectionner votre emplacement"}
+              </Text>
+            )}
+          </View>
         </View>
 
         {/* Specialization Card */}
-        <View style={tw`bg-white rounded-2xl shadow-lg p-6 mb-6`}>
-          <View style={tw`flex-row items-center mb-4`}>
-            <View style={tw`w-1 h-6 bg-purple-600 rounded-full mr-3`} />
-            <Text style={tw`text-lg font-semibold text-gray-800`}>
+        <View style={tw`bg-white rounded-2xl shadow-lg p-6 mb-4`}>
+          <View style={tw`flex-row items-center mb-6`}>
+            <View style={tw`w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3`}>
+              <Text style={tw`text-purple-600 text-lg`}>⚙️</Text>
+            </View>
+            <Text style={tw`text-xl font-bold text-gray-800`}>
               {t.specialization || "Spécialisations"}
             </Text>
           </View>
           
           {/* Part Types */}
           <View style={tw`mb-6`}>
-            <Text style={tw`text-sm font-medium text-gray-600 mb-3 ml-1`}>
+            <Text style={tw`text-sm font-medium text-gray-500 mb-3`}>
               {t.partTypes || "Types de pièces"}
             </Text>
-            <View style={tw`flex-row justify-between px-1`}>
-              <TouchableOpacity
-                style={tw`flex-1 h-12 rounded-xl justify-center items-center mx-1 border-2 ${formData.typesPieces.includes('neuf') ? 'bg-purple-600 border-purple-600' : 'bg-gray-50 border-gray-200'} ${!isEditing ? 'opacity-60' : ''}`}
-                onPress={() => togglePartType('neuf')}
-                disabled={!isEditing}
-              >
-                <Text style={tw`text-base font-medium ${formData.typesPieces.includes('neuf') ? 'text-white' : 'text-gray-700'}`}>
-                  {t.new || "Neuf"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={tw`flex-1 h-12 rounded-xl justify-center items-center mx-1 border-2 ${formData.typesPieces.includes('occasion') ? 'bg-purple-600 border-purple-600' : 'bg-gray-50 border-gray-200'} ${!isEditing ? 'opacity-60' : ''}`}
-                onPress={() => togglePartType('occasion')}
-                disabled={!isEditing}
-              >
-                <Text style={tw`text-base font-medium ${formData.typesPieces.includes('occasion') ? 'text-white' : 'text-gray-700'}`}>
-                  {t.used || "Occasion"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {isEditing ? (
+              <View style={tw`flex-row gap-3`}>
+                <TouchableOpacity
+                  style={tw`flex-1 h-12 rounded-xl justify-center items-center border-2 ${formData.typesPieces.includes('neuf') ? 'bg-purple-600 border-purple-600' : 'bg-gray-50 border-gray-200'}`}
+                  onPress={() => togglePartType('neuf')}
+                >
+                  <Text style={tw`text-base font-medium ${formData.typesPieces.includes('neuf') ? 'text-white' : 'text-gray-700'}`}>
+                    {t.new || "Neuf"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={tw`flex-1 h-12 rounded-xl justify-center items-center border-2 ${formData.typesPieces.includes('occasion') ? 'bg-purple-600 border-purple-600' : 'bg-gray-50 border-gray-200'}`}
+                  onPress={() => togglePartType('occasion')}
+                >
+                  <Text style={tw`text-base font-medium ${formData.typesPieces.includes('occasion') ? 'text-white' : 'text-gray-700'}`}>
+                    {t.used || "Occasion"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={tw`flex-row gap-2 flex-wrap`}>
+                {formData.typesPieces.map((type, index) => (
+                  <View key={index} style={tw`px-3 py-2 bg-purple-100 rounded-lg`}>
+                    <Text style={tw`text-purple-800 font-medium text-sm`}>
+                      {type === 'neuf' ? (t.new || "Neuf") : (t.used || "Occasion")}
+                    </Text>
+                  </View>
+                ))}
+                {formData.typesPieces.length === 0 && (
+                  <Text style={tw`text-gray-500 italic`}>Aucun type sélectionné</Text>
+                )}
+              </View>
+            )}
           </View>
 
           {/* Specialized Brands */}
           <View>
-            <Text style={tw`text-sm font-medium text-gray-600 mb-3 ml-1`}>
+            <Text style={tw`text-sm font-medium text-gray-500 mb-3`}>
               {t.specializedBrands || "Marques spécialisées"}
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`-mx-1`}>
-              <View style={tw`flex-row gap-3 px-1`}>
-                {Object.keys(carData).map((brand) => (
-                  <TouchableOpacity
-                    key={brand}
-                    style={tw`px-4 py-2 rounded-xl border-2 ${formData.marquesSpecialises.includes(brand) ? 'bg-purple-600 border-purple-600' : 'bg-gray-50 border-gray-200'} ${!isEditing ? 'opacity-60' : ''}`}
-                    onPress={() => handleBrandChange(brand)}
-                    disabled={!isEditing}
-                  >
-                    <Text style={tw`font-medium ${formData.marquesSpecialises.includes(brand) ? 'text-white' : 'text-gray-700'} text-sm`}>
+            {isEditing ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`-mx-1`}>
+                <View style={tw`flex-row gap-3 px-1`}>
+                  {Object.keys(carData).map((brand) => (
+                    <TouchableOpacity
+                      key={brand}
+                      style={tw`px-4 py-2 rounded-xl border-2 ${formData.marquesSpecialises.includes(brand) ? 'bg-purple-600 border-purple-600' : 'bg-gray-50 border-gray-200'}`}
+                      onPress={() => handleBrandChange(brand)}
+                    >
+                      <Text style={tw`font-medium ${formData.marquesSpecialises.includes(brand) ? 'text-white' : 'text-gray-700'} text-sm`}>
+                        {brand}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            ) : (
+              <View style={tw`flex-row gap-2 flex-wrap`}>
+                {formData.marquesSpecialises.map((brand, index) => (
+                  <View key={index} style={tw`px-3 py-2 bg-purple-100 rounded-lg`}>
+                    <Text style={tw`text-purple-800 font-medium text-sm`}>
                       {brand}
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 ))}
+                {formData.marquesSpecialises.length === 0 && (
+                  <Text style={tw`text-gray-500 italic`}>Aucune marque sélectionnée</Text>
+                )}
               </View>
-            </ScrollView>
+            )}
           </View>
         </View>
 
         {/* Action Buttons */}
         <View style={tw`bg-white rounded-2xl shadow-lg p-6 mb-6`}>
-          <View style={tw`flex-row justify-center gap-3 mb-4`}>
-            {isEditing ? (
-              <>
-                <TouchableOpacity
-                  style={tw`flex-1 h-14 bg-gray-500 hover:bg-gray-600 rounded-xl justify-center items-center shadow-sm`}
-                  onPress={() => setIsEditing(false)}
-                >
-                  <Text style={tw`text-lg font-semibold text-white`}>
-                    {t.cancel || "Annuler"}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={tw`flex-1 h-14 rounded-xl justify-center items-center shadow-sm ${isLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
-                  onPress={handleSave}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <View style={tw`flex-row items-center`}>
-                      <ActivityIndicator size="small" color="#FFFFFF" />
-                      <Text style={tw`text-lg font-semibold text-white ml-2`}>
-                        {t.saving || "Sauvegarde..."}
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text style={tw`text-lg font-semibold text-white`}>
-                      {t.save || "Enregistrer"}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </>
-            ) : (
+          {isEditing ? (
+            <View style={tw`flex-row gap-3 mb-4`}>
               <TouchableOpacity
-                style={tw`flex-1 h-14 bg-blue-600 hover:bg-blue-700 rounded-xl justify-center items-center shadow-sm`}
-                onPress={() => setIsEditing(true)}
+                style={tw`flex-1 h-14 bg-gray-500 hover:bg-gray-600 rounded-xl justify-center items-center shadow-sm`}
+                onPress={() => setIsEditing(false)}
               >
-                <View style={tw`flex-row items-center`}>
-                  <Text style={tw`text-lg font-semibold text-white mr-2`}>✏️</Text>
-                  <Text style={tw`text-lg font-semibold text-white`}>
-                    {t.edit || "Modifier"}
-                  </Text>
-                </View>
+                <Text style={tw`text-lg font-semibold text-white`}>
+                  {t.cancel || "Annuler"}
+                </Text>
               </TouchableOpacity>
-            )}
-          </View>
+              <TouchableOpacity
+                style={tw`flex-1 h-14 rounded-xl justify-center items-center shadow-sm ${isLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+                onPress={handleSave}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <View style={tw`flex-row items-center`}>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <Text style={tw`text-lg font-semibold text-white ml-2`}>
+                      {t.saving || "Sauvegarde..."}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={tw`text-lg font-semibold text-white`}>
+                    {t.save || "Enregistrer"}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={tw`w-full h-14 bg-blue-600 hover:bg-blue-700 rounded-xl justify-center items-center shadow-sm mb-4`}
+              onPress={() => setIsEditing(true)}
+            >
+              <View style={tw`flex-row items-center`}>
+                <Text style={tw`text-lg font-semibold text-white mr-2`}>✏️</Text>
+                <Text style={tw`text-lg font-semibold text-white`}>
+                  {t.edit || "Modifier le profil"}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
 
           <View style={tw`border-t border-gray-200 pt-4`}>
             <TouchableOpacity 

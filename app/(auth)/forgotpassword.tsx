@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { authService } from '../../scripts/auth-script';
 
@@ -293,11 +293,14 @@ const ForgotPassword: React.FC = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#F1F5F9' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
       >
         <View style={styles.centeredContainer}>
           {/* Language Toggle */}
@@ -341,7 +344,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F1F5F9',
-    minHeight: '100%',
+    paddingVertical: 20,
   },
   centeredContainer: {
     width: '100%',

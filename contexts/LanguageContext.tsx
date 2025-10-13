@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
 export type Language = 'fr' |'ar';
 interface LanguageContextProps {
     language: Language;
@@ -27,6 +27,58 @@ const translations = {
     signup: 'Inscrivez-vous',
     forgotPassword: 'Mot de passe oublié ?',
 
+    // Error and validation messages
+    userAlreadyExists: 'Un compte avec ce numéro de téléphone ou cette adresse e-mail existe déjà. Veuillez essayer de vous connecter ou utiliser un autre numéro/e-mail.',
+    invalidEmail: 'Veuillez saisir une adresse e-mail valide.',
+    invalidPhone: 'Veuillez saisir un numéro de téléphone valide.',
+    passwordError: 'Le mot de passe ne respecte pas les exigences. Veuillez vous assurer qu\'il contient au moins 6 caractères.',
+    networkError: 'Erreur réseau. Veuillez vérifier votre connexion et réessayer.',
+    registrationSuccess: 'Inscription réussie ! Veuillez vérifier votre numéro de téléphone.',
+    ok: 'OK',
+
+    // Additional login error messages
+    accountNotVerified: 'Votre compte n\'est pas vérifié. Veuillez vérifier votre numéro de téléphone.',
+    verify: 'Vérifier',
+    invalidCredentials: 'Numéro de téléphone ou mot de passe invalide. Veuillez vérifier vos informations et réessayer.',
+    accountNotFound: 'Aucun compte trouvé avec ce numéro de téléphone. Veuillez vérifier votre numéro ou créer un nouveau compte.',
+    
+    // Validation messages
+    enterPhone: 'Veuillez saisir votre numéro de téléphone',
+    validPhoneNumber: 'Veuillez saisir un numéro de téléphone valide',
+    enterPassword: 'Veuillez saisir votre mot de passe',
+    passwordMinLength: 'Le mot de passe doit contenir au moins 6 caractères',
+    
+    // Forgot password messages
+    enterPhoneResetPassword: 'Saisissez votre numéro de téléphone pour réinitialiser votre mot de passe',
+    sendCode: 'Envoyer le code de vérification',
+    codeSuccess: 'Code de vérification envoyé sur votre téléphone',
+    enterCodeAndNewPassword: 'Saisissez le code de vérification et votre nouveau mot de passe',
+    verificationCodePlaceholder: 'Code de vérification',
+    newPasswordPlaceholder: 'Nouveau mot de passe',
+    resetPassword: 'Réinitialiser le mot de passe',
+    backToLogin: 'Retour à la connexion',
+    enterCode: 'Veuillez saisir le code de vérification',
+    validCode: 'Veuillez saisir un code de vérification valide',
+    enterNewPassword: 'Veuillez saisir un nouveau mot de passe',
+    confirmNewPassword: 'Veuillez confirmer votre nouveau mot de passe',
+    passwordMismatch: 'Les mots de passe ne correspondent pas',
+    passwordResetSuccess: 'Mot de passe réinitialisé avec succès',
+    invalidOrExpiredCode: 'Le code de vérification est invalide ou expiré. Veuillez réessayer.',
+    
+    // Verification messages
+    verifyPhone: 'Vérifier le numéro de téléphone',
+    verifySubtitle: 'Nous avons envoyé un code de vérification au',
+    verificationSuccess: 'Numéro de téléphone vérifié avec succès !',
+    didntReceiveCode: 'Vous n\'avez pas reçu le code ?',
+    resendCode: 'Renvoyer le code',
+    resendIn: 'Renvoyer dans',
+    codeResent: 'Code de vérification envoyé avec succès',
+    phoneNumberMissing: 'Numéro de téléphone manquant',
+    verificationFailed: 'Échec de la vérification',
+    unexpectedError: 'Une erreur inattendue s\'est produite',
+    failedToResendCode: 'Échec de l\'envoi du code',
+    missingPhoneOrCode: 'Numéro de téléphone ou code de vérification manquant',
+
     // Signup page translations
     signupTitle: "Inscription",
     signupSubtitle: "Créez votre compte",
@@ -44,13 +96,14 @@ const translations = {
     geolocation: "Géolocalisation",
     latitude: "Latitude",
     longitude: "Longitude",
-    coveredZonePlaceholder: "Zone géographique couverte",
+    coveredZone: "Zone géographique couverte",
     emailPlaceholder: "Email",
     pieceTypes: "Types de pièces",
     new: "Neuf",
     used: "Occasion",
-    specialBrandPlaceholder: "Marque spécialisée (optionnel)",
-    specialModelPlaceholder: "Modèle spécialisé (optionnel)",
+    specialBrands: "Marques spécialisées",
+    selectMultipleBrands: "Sélectionnez une ou plusieurs marques",
+    selectedBrands: "Marques sélectionnées:",
     confirmPasswordPlaceholder: "Confirmer le mot de passe",
     next: "Suivant",
     previous: "Précédent",
@@ -109,7 +162,6 @@ const translations = {
     conversations: "Conversations",
     unread: "Non lus",
     completed: "Terminées",
-    quickActions: "Actions rapides",
     viewAllRequests: "Voir toutes les demandes",
     noRequestsPending: "Aucune demande en attente",
     newRequestsWillAppear: "Les nouvelles demandes de pièces apparaîtront ici",
@@ -118,7 +170,6 @@ const translations = {
     searchConversation: "Rechercher une conversation...",
     noConversationsFound: "Aucune conversation trouvée",
     noConversations: "Aucune conversation",
-    tryModifyingSearch: "Essayez de modifier votre recherche",
     conversationsWillAppear: "Les conversations avec les clients apparaîtront ici",
     loadingMessages: "Chargement des messages...",
     
@@ -180,7 +231,6 @@ const translations = {
     seeAll: "Voir tout",
     loadingData: "Récupération des données en cours...",
     newRequestsWillAppearHere: "Les nouvelles demandes de pièces apparaîtront ici",
-    requestDetails: "Détails de la demande",
     requesterLabel: "Demandeur:",
     vehicleLabel: "Véhicule:",
     licensePlate: "Immatriculation:",
@@ -256,6 +306,58 @@ const translations = {
     signup: 'سجل الآن',
     forgotPassword: 'هل نسيت كلمة المرور؟',
 
+    // Error and validation messages
+    userAlreadyExists: 'يوجد حساب بهذا الرقم أو البريد الإلكتروني. يرجى تسجيل الدخول أو استخدام رقم/إيميل آخر.',
+    invalidEmail: 'يرجى إدخال عنوان بريد إلكتروني صحيح.',
+    invalidPhone: 'يرجى إدخال رقم هاتف صحيح.',
+    passwordError: 'كلمة المرور لا تلبي المتطلبات. يرجى التأكد من أنها تحتوي على 6 أحرف على الأقل.',
+    networkError: 'خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.',
+    registrationSuccess: 'تم التسجيل بنجاح! يرجى التحقق من رقم هاتفك.',
+    ok: 'موافق',
+
+    // Additional login error messages
+    accountNotVerified: 'حسابك غير مُفعل. يرجى التحقق من رقم هاتفك.',
+    verify: 'تحقق',
+    invalidCredentials: 'رقم الهاتف أو كلمة المرور غير صحيحة. يرجى التحقق من بياناتك والمحاولة مرة أخرى.',
+    accountNotFound: 'لم يتم العثور على حساب بهذا الرقم. يرجى التحقق من رقمك أو إنشاء حساب جديد.',
+    
+    // Validation messages
+    enterPhone: 'يرجى إدخال رقم هاتفك',
+    validPhoneNumber: 'يرجى إدخال رقم هاتف صحيح',
+    enterPassword: 'يرجى إدخال كلمة المرور',
+    passwordMinLength: 'يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل',
+    
+    // Forgot password messages
+    enterPhoneResetPassword: 'أدخل رقم هاتفك لإعادة تعيين كلمة المرور',
+    sendCode: 'إرسال رمز التحقق',
+    codeSuccess: 'تم إرسال رمز التحقق إلى هاتفك',
+    enterCodeAndNewPassword: 'أدخل رمز التحقق وكلمة المرور الجديدة',
+    verificationCodePlaceholder: 'رمز التحقق',
+    newPasswordPlaceholder: 'كلمة المرور الجديدة',
+    resetPassword: 'إعادة تعيين كلمة المرور',
+    backToLogin: 'العودة إلى تسجيل الدخول',
+    enterCode: 'يرجى إدخال رمز التحقق',
+    validCode: 'يرجى إدخال رمز تحقق صحيح',
+    enterNewPassword: 'يرجى إدخال كلمة مرور جديدة',
+    confirmNewPassword: 'يرجى تأكيد كلمة المرور الجديدة',
+    passwordMismatch: 'كلمات المرور غير متطابقة',
+    passwordResetSuccess: 'تم إعادة تعيين كلمة المرور بنجاح',
+    invalidOrExpiredCode: 'رمز التحقق غير صحيح أو منتهي الصلاحية. يرجى المحاولة مرة أخرى.',
+    
+    // Verification messages
+    verifyPhone: 'تحقق من رقم الهاتف',
+    verifySubtitle: 'لقد أرسلنا رمز التحقق إلى',
+    verificationSuccess: 'تم التحقق من رقم الهاتف بنجاح!',
+    didntReceiveCode: 'لم تستلم الرمز؟',
+    resendCode: 'إعادة إرسال الرمز',
+    resendIn: 'إعادة الإرسال خلال',
+    codeResent: 'تم إرسال رمز التحقق بنجاح',
+    phoneNumberMissing: 'رقم الهاتف مفقود',
+    verificationFailed: 'فشل التحقق',
+    unexpectedError: 'حدث خطأ غير متوقع',
+    failedToResendCode: 'فشل في إعادة إرسال الرمز',
+    missingPhoneOrCode: 'رقم الهاتف أو رمز التحقق مفقود',
+
     // Signup page translations
     signupTitle: "تسجيل حساب",
     signupSubtitle: "أنشئ حسابك",
@@ -273,13 +375,14 @@ const translations = {
     geolocation: "الموقع الجغرافي",
     latitude: "خط العرض",
     longitude: "خط الطول",
-    coveredZonePlaceholder: "المنطقة الجغرافية المغطاة",
+    coveredZone: "المنطقة الجغرافية المغطاة",
     emailPlaceholder: "البريد الإلكتروني",
     pieceTypes: "أنواع القطع",
     new: "جديد",
     used: "مستعمل",
-    specialBrandPlaceholder: "العلامة المتخصصة (اختياري)",
-    specialModelPlaceholder: "الموديل المتخصص (اختياري)",
+    specialBrands: "العلامات المتخصصة",
+    selectMultipleBrands: "اختر علامة أو أكثر",
+    selectedBrands: "العلامات المختارة:",
     confirmPasswordPlaceholder: "تأكيد كلمة المرور",
     next: "التالي",
     previous: "السابق",
@@ -402,14 +505,12 @@ const translations = {
     
     // Dashboard specific content
     dashboardLoadingText: "تحميل لوحة القيادة...",
-    quickActions: "إجراءات سريعة",
     viewAllRequestsButton: "عرض جميع\nالطلبات",
     messagesButton: "الرسائل",
     pendingRequestsTitle: "طلبات في الانتظار",
     seeAll: "عرض الكل",
     loadingData: "جاري استرداد البيانات...",
     newRequestsWillAppearHere: "ستظهر طلبات القطع الجديدة هنا",
-    requestDetails: "تفاصيل الطلب",
     requesterLabel: "الطالب:",
     vehicleLabel: "المركبة:",
     licensePlate: "لوحة التسجيل:",
@@ -423,7 +524,6 @@ const translations = {
     partsRequestsTitle: "طلبات القطع",
     searchByPartName: "البحث بواسطة اسم القطعة أو العميل أو المركبة...",
     noResultsFound: "لم يتم العثور على نتائج",
-    tryModifyingSearch: "جرب تعديل البحث",
     requestsWillAppearHere: "ستظهر طلبات القطع هنا",
     vehicleInfo: "المركبة:",
     yearLabel: "السنة:",
