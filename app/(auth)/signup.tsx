@@ -344,7 +344,7 @@ const SignUp: React.FC = () => {
               <Picker
                 selectedValue={formData.type}
                 onValueChange={(value) => setFormData({ ...formData, type: value })}
-                style={tw`w-full h-12 text-purple-900`}>
+                style={tw`w-full h-16 text-purple-900`}>
                 <Picker.Item label={t.boutique || "Boutique"} value="boutique" />
                 <Picker.Item label={t.company || "Société"} value="societe" />
               </Picker>
