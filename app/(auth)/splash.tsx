@@ -46,7 +46,7 @@ const SplashScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Logo */}
       <Image
-        source={require('../../assets/images/logo.png')} // Ensure logo.png exists
+        source={require('../../assets/images/ipiece.png')} // Ensure ipiece.png exists
         style={styles.logo}
         resizeMode="contain"
       />

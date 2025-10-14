@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "ipiece",
+    "name": "iPiece",
     "slug": "ipiece",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/ipiece-icon.png",
     "scheme": "ipiece",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
+        "foregroundImage": "./assets/images/ipiece-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -29,7 +29,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/logo.png",
+          "image": "./assets/images/ipiece-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -37,7 +37,7 @@
       ]
     ],
     "splash": {
-      "image": "./assets/images/logo.png",
+      "image": "./assets/images/ipiece-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

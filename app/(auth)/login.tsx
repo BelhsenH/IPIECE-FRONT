@@ -143,7 +143,7 @@ const Login: React.FC = () => {
           {/* Logo with shadow */}
           <View style={styles.logoContainer}>
             <Image
-              source={require('../../assets/images/logo.png')}
+              source={require('../../assets/images/ipiece.png')}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -159,7 +159,7 @@ const Login: React.FC = () => {
                 selectedValue={countryCode}
                 onValueChange={(itemValue) => setCountryCode(itemValue)}
                 style={styles.picker}
-                dropdownIconColor="#1E3A8A"
+                dropdownIconColor="#72007F"
               >
                 <Picker.Item label="+216 (Tunisie)" value="+216" />
                 <Picker.Item label="+213 (Algérie)" value="+213" />
@@ -201,7 +201,7 @@ const Login: React.FC = () => {
               onPress={() => setShowPassword((prev) => !prev)}
               activeOpacity={0.7}
             >
-              <Text style={{ color: '#1E3A8A', fontWeight: '600' }}>
+              <Text style={{ color: '#72007F', fontWeight: '600' }}>
                 {showPassword
                   ? translations[language].hide
                   : translations[language].show}
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     borderRadius: 18,
     // Optional: add shadow for card effect
-    shadowColor: '#1E3A8A',
+    shadowColor: '#72007F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 18,
     elevation: 6,
-    shadowColor: '#1E3A8A',
+    shadowColor: '#72007F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 8,
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: '800',
-    color: '#1E3A8A',
+    color: '#72007F',
     marginBottom: 6,
     textAlign: 'center',
     letterSpacing: 0.5,
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 8,
     elevation: 2,
-    shadowColor: '#1E3A8A',
+    shadowColor: '#72007F',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 4,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   picker: {
     width: 110,
     height: 48,
-    color: '#1E3A8A',
+    color: '#72007F',
     backgroundColor: 'transparent',
   },
   input: {
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     fontSize: 16,
-    color: '#1E3A8A',
+    color: '#72007F',
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 18,
     elevation: 2,
-    shadowColor: '#1E3A8A',
+    shadowColor: '#72007F',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 4,
@@ -366,13 +366,13 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     height: 50,
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#72007F',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 18,
     elevation: 2,
-    shadowColor: '#1E3A8A',
+    shadowColor: '#72007F',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
     shadowRadius: 4,
@@ -407,12 +407,12 @@ const styles = StyleSheet.create({
   },
   linkTextPrimary: {
     fontSize: 15,
-    color: '#1E3A8A',
+    color: '#72007F',
     marginBottom: 8,
     fontWeight: '500',
   },
   linkTextAccent: {
-    color: '#2563EB',
+    color: '#A855F7',
     fontWeight: '700',
   },
   linkTextSecondary: {
@@ -426,11 +426,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#E0E7FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 8,
   },
   langToggleText: {
-    color: '#1E3A8A',
+    color: '#72007F',
     fontWeight: '700',
     fontSize: 15,
   },

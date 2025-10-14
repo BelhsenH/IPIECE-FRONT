@@ -1,9 +1,9 @@
 // Modern Color Palette for ipiece app
 export const Colors = {
-  // Primary Colors (Blue theme to match dashboard)
-  primary: '#1E3A8A', // Deep blue
-  primaryLight: '#3B82F6', // Lighter blue
-  primaryDark: '#1E40AF', // Darker blue
+  // Primary Colors (Purple theme to match #72007F)
+  primary: '#72007F', // Deep purple
+  primaryLight: '#A855F7', // Lighter purple
+  primaryDark: '#581C87', // Darker purple
   
   // Secondary Colors
   secondary: '#10B981', // Green for success/availability
@@ -33,7 +33,7 @@ export const Colors = {
   success: '#22C55E', // Green
   warning: '#F59E0B', // Amber
   error: '#EF4444', // Red
-  info: '#3B82F6', // Blue
+  info: '#A855F7', // Purple
   
   // Glass Effect
   glass: 'rgba(255, 255, 255, 0.1)',

@@ -426,7 +426,7 @@ const handleLogout = () => {
     const imageUrl = getCategoryImageUrl(category?.imagePath);
 
     if (!category?.imagePath || imageError || !imageUrl) {
-      return <Ionicons name="car-sport-outline" size={size} color="#1E3A8A" style={style} />;
+      return <Ionicons name="car-sport-outline" size={size} color="#72007F" style={style} />;
     }
 
     return (
@@ -446,7 +446,7 @@ const handleLogout = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return '#F59E0B';
-      case 'in-progress': return '#3B82F6';
+      case 'in-progress': return '#A855F7';
       case 'completed': return '#10B981';
       case 'cancelled': return '#EF4444';
       default: return '#6B7280';
@@ -533,7 +533,7 @@ const handleLogout = () => {
         shadowRadius: 6,
         elevation: 3,
         borderLeftWidth: 4,
-        borderLeftColor: '#3B82F6',
+        borderLeftColor: '#A855F7',
       }
     ]}>
       {/* Header */}
@@ -545,7 +545,7 @@ const handleLogout = () => {
               size={32} 
               style={tw`mr-3`} 
             />
-            <Text style={tw`text-lg font-bold text-blue-900 flex-1`}>{item.partName}</Text>
+            <Text style={tw`text-lg font-bold text-purple-900 flex-1`}>{item.partName}</Text>
           </View>
           
           <View style={tw`flex-row items-center mb-2`}>
@@ -553,7 +553,7 @@ const handleLogout = () => {
             <Text style={tw`text-sm text-gray-600`}>
               {item.requester?.firstName} {item.requester?.lastName}
             </Text>
-            <View style={tw`bg-blue-900 rounded-full px-2 py-1 ml-2`}>
+            <View style={tw`bg-purple-900 rounded-full px-2 py-1 ml-2`}>
               <Text style={tw`text-white text-xs font-semibold`}>
                 {item.requester?.userType || 'Utilisateur'}
                 {item.requester?.accountType === 'entreprise' && ' PRO'}
@@ -627,23 +627,23 @@ const handleLogout = () => {
 
       {/* Category Tree */}
       {(item.category || item.subCategory) && (
-        <View style={tw`bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3`}>
+        <View style={tw`bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3`}>
           <View style={tw`flex-row items-center mb-2`}>
-            <Ionicons name="folder-outline" size={16} color="#3B82F6" style={tw`mr-2`} />
-            <Text style={tw`text-sm font-semibold text-blue-800`}>{t.category || 'Catégorie'}</Text>
+            <Ionicons name="folder-outline" size={16} color="#A855F7" style={tw`mr-2`} />
+            <Text style={tw`text-sm font-semibold text-purple-800`}>{t.category || 'Catégorie'}</Text>
           </View>
           <View style={tw`flex-row items-center flex-wrap`}>
             {item.category && (
               <View style={tw`flex-row items-center mr-2 mb-1`}>
                 <CategoryIcon category={item.category} size={16} style={tw`mr-1`} />
-                <Text style={tw`text-sm text-blue-700 font-medium`}>{item.category.name}</Text>
-                {item.subCategory && <Ionicons name="chevron-forward" size={14} color="#3B82F6" style={tw`mx-1`} />}
+                <Text style={tw`text-sm text-purple-700 font-medium`}>{item.category.name}</Text>
+                {item.subCategory && <Ionicons name="chevron-forward" size={14} color="#A855F7" style={tw`mx-1`} />}
               </View>
             )}
             {item.subCategory && (
               <View style={tw`flex-row items-center`}>
                 <CategoryIcon category={item.subCategory} size={16} style={tw`mr-1`} />
-                <Text style={tw`text-sm text-blue-600`}>{item.subCategory.name}</Text>
+                <Text style={tw`text-sm text-purple-600`}>{item.subCategory.name}</Text>
               </View>
             )}
           </View>
@@ -668,7 +668,7 @@ const handleLogout = () => {
         <View>
           <Text style={tw`text-xs text-gray-400`}>{formatTimeAgo(item.createdAt)}</Text>
           {item.lastContactedAt && (
-            <Text style={tw`text-xs text-blue-600 mt-1`}>
+            <Text style={tw`text-xs text-purple-600 mt-1`}>
               {t.lastInteraction || 'Dernière interaction:'} {formatTimeAgo(item.lastContactedAt)}
             </Text>
           )}
@@ -676,7 +676,7 @@ const handleLogout = () => {
         
         <View style={tw`flex-row gap-2`}>
           <TouchableOpacity
-            style={tw`bg-blue-600 rounded-lg px-3 py-2`}
+            style={tw`bg-purple-600 rounded-lg px-3 py-2`}
             onPress={() => handleStartConversation(item)}
           >
             <Ionicons name="chatbubble" size={16} color="white" />
@@ -714,7 +714,7 @@ const handleLogout = () => {
     return (
       <SafeAreaView style={tw`flex-1 bg-gray-50`}>
         {/* Header */}
-        <View style={tw`bg-blue-900 p-4 shadow-lg`}>
+        <View style={tw`bg-purple-900 p-4 shadow-lg`}>
           <View style={tw`flex-row items-center justify-between`}>
             <View style={tw`flex-row items-center`}>
               <TouchableOpacity onPress={() => setIsSidebarOpen(true)} style={tw`mr-3`}>
@@ -741,7 +741,7 @@ const handleLogout = () => {
 
           {/* Loading indicator */}
           <View style={tw`flex-1 justify-center items-center py-20`}>
-            <ActivityIndicator size="large" color="#1E3A8A" />
+            <ActivityIndicator size="large" color="#72007F" />
             <Text style={tw`text-gray-600 mt-4`}>{t.dashboardLoadingText || 'Chargement du tableau de bord...'}</Text>
           </View>
         </ScrollView>
@@ -753,13 +753,13 @@ const handleLogout = () => {
     <GestureHandlerRootView style={tw`flex-1`}>
       <SafeAreaView style={[tw`flex-1 bg-gray-50`, { position: 'relative' }]}>
       {/* Header */}
-      <View style={tw`bg-blue-900 p-4 flex-row justify-between items-center shadow-lg`}>
+      <View style={tw`bg-purple-900 p-4 flex-row justify-between items-center shadow-lg`}>
         <View style={tw`flex-row items-center`}>
           <TouchableOpacity onPress={toggleSidebar} style={tw`mr-3`}>
             <Ionicons name={isSidebarOpen ? 'close-outline' : 'menu-outline'} size={24} color="white" />
           </TouchableOpacity>
           <Image
-            source={require('../../assets/images/logo.png')}
+            source={require('../../assets/images/ipiece.png')}
             style={tw`w-10 h-10 mr-3`}
             resizeMode="contain"
           />
@@ -771,11 +771,11 @@ const handleLogout = () => {
                 return currentUser?.firstName || 'Utilisateur';
               })()}
             </Text>
-            <Text style={tw`text-blue-200 text-sm`}>
+            <Text style={tw`text-purple-200 text-sm`}>
               {currentUser?.companyName || currentUser?.lastName || 'iPiece Provider'}
             </Text>
             <TouchableOpacity onPress={() => router.push('/(home)/profile')}>
-              <Text style={tw`text-blue-200 text-sm underline`}>
+              <Text style={tw`text-purple-200 text-sm underline`}>
                 {t.viewProfile || (language === 'fr' ? 'Voir le profil' : 'عرض الملف الشخصي')}
               </Text>
             </TouchableOpacity>
@@ -838,46 +838,46 @@ const handleLogout = () => {
               router.push('/(home)/profile'); 
             }}
           >
-            <View style={tw`w-16 h-16 bg-blue-100 rounded-full items-center justify-center mb-2`}>
-              <Ionicons name="business" size={32} color="#1E3A8A" />
+            <View style={tw`w-16 h-16 bg-purple-100 rounded-full items-center justify-center mb-2`}>
+              <Ionicons name="business" size={32} color="#72007F" />
             </View>
-            <Text style={tw`text-blue-900 text-base font-bold text-center`}>
+            <Text style={tw`text-purple-900 text-base font-bold text-center`}>
               {currentUser?.firstName || ''} {currentUser?.lastName || ''}
             </Text>
-            <Text style={tw`text-blue-400 text-xs text-center`}>{currentUser?.email || ''}</Text>
-            <Text style={tw`text-blue-600 text-sm font-semibold mt-1 text-center`}>
+            <Text style={tw`text-purple-400 text-xs text-center`}>{currentUser?.email || ''}</Text>
+            <Text style={tw`text-purple-600 text-sm font-semibold mt-1 text-center`}>
               {currentUser?.companyName || (t.supplier || (language === 'fr' ? 'Fournisseur iPiece' : 'مورد iPiece'))}
             </Text>
-            <Text style={tw`text-blue-300 text-xs mt-1 underline`}>
+            <Text style={tw`text-purple-300 text-xs mt-1 underline`}>
               {t.editProfile || (language === 'fr' ? 'Modifier le profil' : 'تعديل الملف الشخصي')}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Language Toggle */}
-        <View style={tw`mb-4 border-t border-blue-100 pt-4`}>
+        <View style={tw`mb-4 border-t border-purple-100 pt-4`}>
           <TouchableOpacity
-            style={tw`flex-row items-center justify-between p-3 rounded-xl bg-blue-50`}
+            style={tw`flex-row items-center justify-between p-3 rounded-xl bg-purple-50`}
             onPress={toggleLanguage}
           >
             <View style={tw`flex-row items-center`}>
-              <Ionicons name="language-outline" size={20} color="#3B82F6" style={tw`mr-3`} />
-              <Text style={tw`text-blue-800 text-base font-medium`}>
+              <Ionicons name="language-outline" size={20} color="#A855F7" style={tw`mr-3`} />
+              <Text style={tw`text-purple-800 text-base font-medium`}>
                 {language === 'fr' ? 'Langue' : 'اللغة'}
               </Text>
             </View>
             <View style={tw`flex-row items-center bg-white rounded-lg px-3 py-1`}>
-              <Text style={tw`text-blue-900 text-sm font-semibold`}>
+              <Text style={tw`text-purple-900 text-sm font-semibold`}>
                 {language === 'fr' ? 'FR' : 'AR'}
               </Text>
-              <Ionicons name="chevron-forward" size={16} color="#1E3A8A" style={tw`ml-1`} />
+              <Ionicons name="chevron-forward" size={16} color="#72007F" style={tw`ml-1`} />
             </View>
           </TouchableOpacity>
         </View>
 
         {/* Navigation */}
         <TouchableOpacity
-          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-blue-900`}
+          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-purple-900`}
           onPress={() => { setIsSidebarOpen(false); }}
         >
           <Ionicons name="grid-outline" size={20} color="white" style={tw`mr-3`} />
@@ -897,7 +897,7 @@ const handleLogout = () => {
         </TouchableOpacity>*/}
 
         <TouchableOpacity
-          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-blue-700`}
+          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-purple-700`}
           onPress={() => { setIsSidebarOpen(false); router.push('/(home)/parts-requests-optimized'); }}
         >
           <Ionicons name="flash-outline" size={20} color="white" style={tw`mr-3`} />
@@ -919,7 +919,7 @@ const handleLogout = () => {
         {/* Conversations sidebar item removed as requested */}
 
         <TouchableOpacity
-          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-blue-700`}
+          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-purple-700`}
           onPress={() => { setIsSidebarOpen(false); router.push('/(home)/messages'); }}
         >
           <Ionicons name="mail-outline" size={20} color="white" style={tw`mr-3`} />
@@ -929,7 +929,7 @@ const handleLogout = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-blue-600`}
+          style={tw`flex-row items-center mb-3 p-3 rounded-xl bg-purple-600`}
           onPress={() => { setIsSidebarOpen(false); router.push('/(home)/profile'); }}
         >
           <Ionicons name="person-outline" size={20} color="white" style={tw`mr-3`} />
@@ -964,16 +964,16 @@ const handleLogout = () => {
             </View>
             
             <View style={tw`w-1/2 px-2 mb-4`}>
-              <View style={tw`bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500`}>
+              <View style={tw`bg-purple-50 rounded-xl p-4 border-l-4 border-purple-500`}>
                 <View style={tw`flex-row items-center justify-between mb-2`}>
-                  <Ionicons name="chatbubbles" size={24} color="#3B82F6" />
+                  <Ionicons name="chatbubbles" size={24} color="#A855F7" />
                   {conversationsLoading ? (
-                    <ActivityIndicator size="small" color="#3B82F6" />
+                    <ActivityIndicator size="small" color="#A855F7" />
                   ) : (
-                    <Text style={tw`text-2xl font-bold text-blue-600`}>{stats.activeConversations}</Text>
+                    <Text style={tw`text-2xl font-bold text-purple-600`}>{stats.activeConversations}</Text>
                   )}
                 </View>
-                <Text style={tw`text-blue-700 font-medium`}>
+                <Text style={tw`text-purple-700 font-medium`}>
                   {t.conversations || (language === 'fr' ? 'Conversations' : 'المحادثات')}
                 </Text>
               </View>
@@ -1018,7 +1018,7 @@ const handleLogout = () => {
           <Text style={tw`text-xl font-bold text-gray-900 mb-4`}>{t.quickActions || 'Actions rapides'}</Text>
           <View style={tw`flex-row flex-wrap gap-3`}>
             <TouchableOpacity
-              style={tw`flex-1 bg-blue-600 rounded-xl p-4 items-center min-w-32`}
+              style={tw`flex-1 bg-purple-600 rounded-xl p-4 items-center min-w-32`}
               onPress={() => router.push('/(home)/parts-requests-optimized')}
             >
               <Ionicons name="list" size={24} color="white" />
@@ -1050,7 +1050,7 @@ const handleLogout = () => {
           {pendingRequests.filter(request => !hiddenRequests.has(request._id)).length > 0 && (
             <View style={tw`bg-blue-100 border border-blue-200 rounded-lg p-3 mb-4`}>
               <View style={tw`flex-row items-center`}>
-                <Ionicons name="information-circle" size={16} color="#3B82F6" style={tw`mr-2`} />
+                <Ionicons name="information-circle" size={16} color="#A855F7" style={tw`mr-2`} />
                 <Text style={tw`text-sm text-blue-800 flex-1`}>
                   {t.swipeToHide || 'Glissez à gauche ou à droite pour masquer une demande'}
                 </Text>

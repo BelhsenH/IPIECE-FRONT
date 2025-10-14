@@ -120,7 +120,7 @@ const ResetPassword: React.FC = () => {
           {/* Logo with shadow */}
           <View style={styles.logoContainer}>
             <Image
-              source={require('../../assets/images/logo.png')}
+              source={require('../../assets/images/ipiece.png')}
               style={styles.logo}
               resizeMode="contain"
             />

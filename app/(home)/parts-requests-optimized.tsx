@@ -28,31 +28,68 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useWebSocket } from '../../contexts/WebSocketContext';
 import ConversationService from '../../services/conversationService';
 import PartsService, { PartsRequest } from '../../services/partsService';
+import UserService from '../../services/userService';
 
 const OptimizedPartsRequestsPage: React.FC = () => {
   console.log('OptimizedPartsRequests: Component rendering at', new Date().toISOString());
   
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { language, translations } = useLanguage();
   const { addListener } = useWebSocket();
   const t = translations[language];
   const hasInitialized = useRef(false);
   
-  console.log('OptimizedPartsRequests: Component state - authenticated:', isAuthenticated, 'user:', !!user, 'language:', language);
+  // Local user state for immediate updates (similar to dashboard)
+  const [currentUser, setCurrentUser] = useState(user);
+  
+  console.log('OptimizedPartsRequests: Component state - user:', !!user, 'language:', language);
 
-  // Debug: Check if token is actually stored
-  useEffect(() => {
-    const checkToken = async () => {
-      try {
-        const storedToken = await AsyncStorage.getItem('@auth_token');
-        console.log('OptimizedPartsRequests: Token in AsyncStorage:', storedToken ? 'Present' : 'Missing');
-      } catch (error) {
-        console.log('OptimizedPartsRequests: Error checking AsyncStorage token:', error);
+  // Load user profile data (similar to dashboard)
+  const loadUserProfile = useCallback(async () => {
+    try {
+      console.log('OptimizedPartsRequests: Starting loadUserProfile...');
+      const profile = await UserService.getProfile();
+      console.log('OptimizedPartsRequests: UserService.getProfile returned:', profile);
+
+      // Map UserService profile to AuthContext user structure
+      const userUpdate = {
+        _id: profile._id,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone,
+        userType: profile.userType,
+        companyName: profile.companyName,
+        location: profile.location,
+        specialization: profile.specialization,
+        email: profile.email,
+        createdAt: profile.createdAt,
+        updatedAt: profile.updatedAt,
+      };
+      console.log('OptimizedPartsRequests: Updating user with:', userUpdate);
+      
+      // Update local state immediately
+      setCurrentUser(prev => ({ ...prev, ...userUpdate } as any));
+      
+      // Also update AuthContext
+      updateUser(userUpdate);
+      
+    } catch (error: any) {
+      console.error('OptimizedPartsRequests: Error loading user profile:', error);
+      
+      // If it's an auth error, redirect to login
+      if (error.message === 'Unauthorized') {
+        router.replace('/(auth)/login');
       }
-    };
-    checkToken();
-  }, []);
+    }
+  }, [updateUser, router]);
+
+  // Sync local user state with AuthContext when it changes
+  useEffect(() => {
+    if (user && user._id) {
+      setCurrentUser(user);
+    }
+  }, [user]);
 
   // State management
   const [requests, setRequests] = useState<PartsRequest[]>([]);
@@ -69,7 +106,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
   const screenHeight = Dimensions.get('window').height;
 
   // Storage key for hidden requests
-  const HIDDEN_REQUESTS_KEY = `@hidden_requests_${user?._id || 'anonymous'}`;
+  const HIDDEN_REQUESTS_KEY = `@hidden_requests_${currentUser?._id || 'anonymous'}`;
 
   // Load hidden requests from AsyncStorage
   const loadHiddenRequests = useCallback(async () => {
@@ -145,7 +182,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
     const imageUrl = getCategoryImageUrl(category?.imagePath);
 
     if (!category?.imagePath || imageError || !imageUrl) {
-      return <Ionicons name="car-sport-outline" size={size} color="#1E3A8A" style={style} />;
+      return <Ionicons name="car-sport-outline" size={size} color="#72007F" style={style} />;
     }
 
     return (
@@ -160,14 +197,9 @@ const OptimizedPartsRequestsPage: React.FC = () => {
 
   // Optimized load requests function with timeout and validation
   const loadRequests = useCallback(async () => {
-    if (!isAuthenticated) {
-      console.log('OptimizedPartsRequests: Not authenticated, skipping loadRequests');
-      return;
-    }
-
     const startTime = performance.now();
     console.log('OptimizedPartsRequests: Starting loadRequests at', new Date().toISOString());
-    console.log('OptimizedPartsRequests: Authenticated:', isAuthenticated, 'User ID:', user?._id);
+    console.log('OptimizedPartsRequests: User ID:', currentUser?._id);
 
     try {
       // Add timeout to prevent hanging (8 seconds for faster feedback)
@@ -224,7 +256,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
       setRequests([]);
       setFilteredRequests([]);
     }
-  }, [isAuthenticated, user?._id, language, t.error]);
+  }, [currentUser?._id, language, t.error]);
 
   // Filter requests based on search and hidden items
   const filterRequests = useCallback(() => {
@@ -261,28 +293,25 @@ const OptimizedPartsRequestsPage: React.FC = () => {
     setFilteredRequests(filtered);
   }, [requests, searchQuery, hiddenRequests]);
 
-  // Initialization effect
+  // Initialization effect (similar to dashboard)
   useEffect(() => {
     if (hasInitialized.current) {
       console.log('OptimizedPartsRequests: Already initialized, skipping');
-      return;
-    }
-
-    // Wait for auth state to be determined
-    if (!isAuthenticated) {
-      console.log('OptimizedPartsRequests: Not authenticated yet, waiting...');
       return;
     }
     
     const initializeOptimizedPartsRequests = async () => {
       const initStartTime = performance.now();
       console.log('OptimizedPartsRequests: Starting initialization at', new Date().toISOString());
-      console.log('OptimizedPartsRequests: Auth state - authenticated:', isAuthenticated, 'user:', user?._id);
+      console.log('OptimizedPartsRequests: User:', currentUser?._id);
       
       hasInitialized.current = true;
       setLoading(true);
       
       try {
+        // First load user profile to ensure user data is available
+        await loadUserProfile();
+        
         // Load hidden requests first
         console.log('OptimizedPartsRequests: Loading hidden requests...');
         const hiddenStartTime = performance.now();
@@ -310,7 +339,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
     };
     
     initializeOptimizedPartsRequests();
-  }, [loadHiddenRequests, loadRequests, isAuthenticated, user?._id]);
+  }, [loadUserProfile, loadHiddenRequests, loadRequests, currentUser?._id]);
 
   // Filter effect
   useEffect(() => {
@@ -368,11 +397,6 @@ const OptimizedPartsRequestsPage: React.FC = () => {
 
   // Start conversation function
   const startConversation = async (request: PartsRequest) => {
-    if (!isAuthenticated) {
-      console.log('OptimizedPartsRequests: Not authenticated for starting conversation');
-      return;
-    }
-    
     const conversationStartTime = performance.now();
     console.log('OptimizedPartsRequests: Starting conversation with requester for request:', request._id);
     
@@ -448,7 +472,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return '#F59E0B';
-      case 'in-progress': return '#3B82F6';
+      case 'in-progress': return '#A855F7';
       case 'completed': return '#10B981';
       case 'cancelled': return '#EF4444';
       default: return '#6B7280';
@@ -566,7 +590,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
               size={32} 
               style={tw`mr-3`} 
             />
-            <Text style={tw`text-xl font-bold text-blue-900 flex-1`} numberOfLines={2}>
+            <Text style={tw`text-xl font-bold text-purple-900 flex-1`} numberOfLines={2}>
               {item.partName}
             </Text>
           </View>
@@ -579,7 +603,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
             {item.requester?.userType && (
               <View style={[
                 tw`ml-2 px-2 py-1 rounded-full`,
-                { backgroundColor: item.requester.userType === 'irepair' ? '#3B82F6' : '#10B981' }
+                { backgroundColor: item.requester.userType === 'irepair' ? '#A855F7' : '#10B981' }
               ]}>
                 <Text style={tw`text-white text-xs font-semibold`}>
                   {item.requester.userType.toUpperCase()}
@@ -621,23 +645,23 @@ const OptimizedPartsRequestsPage: React.FC = () => {
 
       {/* Category Tree */}
       {(item.category || item.subCategory) && (
-        <View style={tw`bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3`}>
+        <View style={tw`bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3`}>
           <View style={tw`flex-row items-center mb-2`}>
-            <Ionicons name="folder-outline" size={16} color="#3B82F6" style={tw`mr-2`} />
-            <Text style={tw`text-sm font-semibold text-blue-800`}>{t.category || 'Catégorie'}</Text>
+            <Ionicons name="folder-outline" size={16} color="#A855F7" style={tw`mr-2`} />
+            <Text style={tw`text-sm font-semibold text-purple-800`}>{t.category || 'Catégorie'}</Text>
           </View>
           <View style={tw`flex-row items-center flex-wrap`}>
             {item.category && (
               <View style={tw`flex-row items-center mr-2 mb-1`}>
                 <CategoryIcon category={item.category} size={16} style={tw`mr-1`} />
-                <Text style={tw`text-sm text-blue-700 font-medium`}>{item.category.name}</Text>
-                {item.subCategory && <Ionicons name="chevron-forward" size={14} color="#3B82F6" style={tw`mx-1`} />}
+                <Text style={tw`text-sm text-purple-700 font-medium`}>{item.category.name}</Text>
+                {item.subCategory && <Ionicons name="chevron-forward" size={14} color="#A855F7" style={tw`mx-1`} />}
               </View>
             )}
             {item.subCategory && (
               <View style={tw`flex-row items-center`}>
                 <CategoryIcon category={item.subCategory} size={16} style={tw`mr-1`} />
-                <Text style={tw`text-sm text-blue-600`}>{item.subCategory.name}</Text>
+                <Text style={tw`text-sm text-purple-600`}>{item.subCategory.name}</Text>
               </View>
             )}
           </View>
@@ -719,7 +743,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={tw`flex-row items-center bg-blue-600 rounded-lg py-2 px-4`}
+            style={tw`flex-row items-center bg-purple-600 rounded-lg py-2 px-4`}
             onPress={() => handleCallRequester(item)}
           >
             <Ionicons name="call-outline" size={16} color="white" style={tw`mr-2`} />
@@ -732,12 +756,12 @@ const OptimizedPartsRequestsPage: React.FC = () => {
     </View>
   );
 
-  // Loading state
+  // Loading state - show loading while data is loading (similar to dashboard)
   if (loading) {
-    console.log('OptimizedPartsRequests: Rendering loading state');
+    console.log('OptimizedPartsRequests: Rendering loading state - loading:', loading);
     return (
       <SafeAreaView style={tw`flex-1 bg-gray-50`}>
-        <View style={tw`bg-blue-900 p-4 flex-row justify-between items-center shadow-lg`}>
+        <View style={tw`bg-purple-900 p-4 flex-row justify-between items-center shadow-lg`}>
           <View style={tw`flex-row items-center`}>
             <TouchableOpacity
               style={tw`mr-3`}
@@ -752,7 +776,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
         </View>
         
         <View style={tw`flex-1 justify-center items-center`}>
-          <ActivityIndicator size="large" color="#1E3A8A" />
+          <ActivityIndicator size="large" color="#72007F" />
           <Text style={tw`mt-4 text-gray-600 text-base`}>
             {t.loading || 'Chargement...'}
           </Text>
@@ -767,7 +791,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
     <GestureHandlerRootView style={tw`flex-1`}>
       <SafeAreaView style={tw`flex-1 bg-gray-50`}>
         {/* Header */}
-        <View style={tw`bg-blue-900 p-4 shadow-lg`}>
+        <View style={tw`bg-purple-900 p-4 shadow-lg`}>
           <View style={tw`flex-row items-center justify-between mb-3`}>
             <View style={tw`flex-row items-center`}>
               <TouchableOpacity
@@ -818,7 +842,7 @@ const OptimizedPartsRequestsPage: React.FC = () => {
             </Text>
             {searchQuery && (
               <TouchableOpacity
-                style={tw`mt-4 bg-blue-600 rounded-lg py-2 px-4`}
+                style={tw`mt-4 bg-purple-600 rounded-lg py-2 px-4`}
                 onPress={() => setSearchQuery('')}
               >
                 <Text style={tw`text-white font-semibold`}>
@@ -834,10 +858,10 @@ const OptimizedPartsRequestsPage: React.FC = () => {
               <View key={`${item._id}-${index}`}>
                 <SwipeableRequestCard item={item} />
                 {index === 0 && (
-                  <View style={tw`bg-blue-100 border border-blue-200 rounded-lg p-3 mx-4 mb-4`}>
+                  <View style={tw`bg-purple-100 border border-purple-200 rounded-lg p-3 mx-4 mb-4`}>
                     <View style={tw`flex-row items-center`}>
-                      <Ionicons name="information-circle" size={16} color="#3B82F6" style={tw`mr-2`} />
-                      <Text style={tw`text-sm text-blue-800 flex-1`}>
+                      <Ionicons name="information-circle" size={16} color="#A855F7" style={tw`mr-2`} />
+                      <Text style={tw`text-sm text-purple-800 flex-1`}>
                         {t.swipeToHide || 'Glissez à gauche ou à droite pour masquer une demande'}
                       </Text>
                     </View>

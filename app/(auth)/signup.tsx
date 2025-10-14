@@ -13,24 +13,24 @@ const stepIndicatorStyles = {
   currentStepIndicatorSize: 40,
   separatorStrokeWidth: 2,
   currentStepStrokeWidth: 3,
-  stepStrokeCurrentColor: '#1E3A8A',
+  stepStrokeCurrentColor: '#72007F',
   stepStrokeWidth: 2,
   separatorStrokeFinishedWidth: 2,
-  stepStrokeFinishedColor: '#1E3A8A',
+  stepStrokeFinishedColor: '#72007F',
   stepStrokeUnFinishedColor: '#D1D5DB',
-  separatorFinishedColor: '#1E3A8A',
+  separatorFinishedColor: '#72007F',
   separatorUnFinishedColor: '#D1D5DB',
-  stepIndicatorFinishedColor: '#1E3A8A',
+  stepIndicatorFinishedColor: '#72007F',
   stepIndicatorUnFinishedColor: '#FFFFFF',
   stepIndicatorCurrentColor: '#FFFFFF',
   stepIndicatorLabelFontSize: 13,
   currentStepIndicatorLabelFontSize: 13,
-  stepIndicatorLabelCurrentColor: '#1E3A8A',
+  stepIndicatorLabelCurrentColor: '#72007F',
   stepIndicatorLabelFinishedColor: '#FFFFFF',
   stepIndicatorLabelUnFinishedColor: '#4B5563',
   labelColor: '#4B5563',
   labelSize: 13,
-  currentStepLabelColor: '#1E3A8A',
+  currentStepLabelColor: '#72007F',
 };
 
 // Sample car brands and models
@@ -337,35 +337,34 @@ const SignUp: React.FC = () => {
       case 0:
         return (
           <View style={tw`w-full`}>
-            <Text style={tw`text-lg font-semibold text-blue-900 mb-2 text-center`}>
+            <Text style={tw`text-lg font-semibold text-purple-900 mb-2 text-center`}>
               {t.companyType || "Type d'entreprise"}
             </Text>
             <View style={tw`mb-4 bg-gray-100 rounded-lg`}>
               <Picker
                 selectedValue={formData.type}
                 onValueChange={(value) => setFormData({ ...formData, type: value })}
-                style={tw`w-full h-12 text-blue-900`}
-              >
+                style={tw`w-full h-12 text-purple-900`}>
                 <Picker.Item label={t.boutique || "Boutique"} value="boutique" />
                 <Picker.Item label={t.company || "Société"} value="societe" />
               </Picker>
             </View>
             <TextInput
-              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-blue-900`}
+              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-purple-900`}
               placeholder={t.companyNamePlaceholder || "Nom de la boutique/société"}
               value={formData.nomBoutiqueSociete}
               onChangeText={(text) => setFormData({ ...formData, nomBoutiqueSociete: text })}
               placeholderTextColor="#9CA3AF"
             />
             <TextInput
-              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-blue-900`}
+              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-purple-900`}
               placeholder={t.managerNamePlaceholder || "Nom du gérant"}
               value={formData.nomGerant}
               onChangeText={(text) => setFormData({ ...formData, nomGerant: text })}
               placeholderTextColor="#9CA3AF"
             />
             <TextInput
-              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-blue-900`}
+              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-purple-900`}
               placeholder={t.socialReasonPlaceholder || "Raison sociale (optionnel)"}
               value={formData.raisonSociale}
               onChangeText={(text) => setFormData({ ...formData, raisonSociale: text })}
@@ -377,13 +376,13 @@ const SignUp: React.FC = () => {
         return (
           <View style={tw`w-full`}>
             <TextInput
-              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-blue-900`}
+              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-purple-900`}
               placeholder={t.addressPlaceholder || "Adresse"}
               value={formData.adresse}
               onChangeText={(text) => setFormData({ ...formData, adresse: text })}
               placeholderTextColor="#9CA3AF"
             />
-            <Text style={tw`text-lg font-semibold text-blue-900 mb-2 text-center`}>
+            <Text style={tw`text-lg font-semibold text-purple-900 mb-2 text-center`}>
               {t.geolocation || "Géolocalisation"}
             </Text>
             <OpenStreetMapView
@@ -394,7 +393,7 @@ const SignUp: React.FC = () => {
             />
             <View style={tw`flex-row mb-4`}>
               <TextInput
-                style={tw`flex-1 h-12 bg-gray-100 rounded-lg px-4 mr-2 text-blue-900`}
+                style={tw`flex-1 h-12 bg-gray-100 rounded-lg px-4 mr-2 text-purple-900`}
                 placeholder={t.latitude || "Latitude"}
                 keyboardType="numeric"
                 value={formData.geolocation.lat.toString()}
@@ -412,7 +411,7 @@ const SignUp: React.FC = () => {
                 placeholderTextColor="#9CA3AF"
               />
               <TextInput
-                style={tw`flex-1 h-12 bg-gray-100 rounded-lg px-4 text-blue-900`}
+                style={tw`flex-1 h-12 bg-gray-100 rounded-lg px-4 text-purple-900`}
                 placeholder={t.longitude || "Longitude"}
                 keyboardType="numeric"
                 value={formData.geolocation.lng.toString()}
@@ -430,14 +429,14 @@ const SignUp: React.FC = () => {
                 placeholderTextColor="#9CA3AF"
               />
             </View>
-            <Text style={tw`text-lg font-semibold text-blue-900 mb-2 text-center`}>
+            <Text style={tw`text-lg font-semibold text-purple-900 mb-2 text-center`}>
               {t.coveredZone || "Zone géographique couverte"}
             </Text>
             <View style={tw`mb-4 bg-gray-100 rounded-lg`}>
               <Picker
                 selectedValue={formData.zoneGeoCouverte}
                 onValueChange={(value) => setFormData({ ...formData, zoneGeoCouverte: value })}
-                style={tw`w-full h-12 text-blue-900`}
+                style={tw`w-full h-12 text-purple-900`}
               >
                 <Picker.Item label={t.selectZone || "Sélectionner une zone"} value="" />
                 {geoZones.map((zone) => (
@@ -455,14 +454,14 @@ const SignUp: React.FC = () => {
                 <Picker
                   selectedValue={formData.countryCode}
                   onValueChange={(value) => setFormData({ ...formData, countryCode: value })}
-                  style={tw`w-full h-12 text-blue-900`}
+                  style={tw`w-full h-12 text-purple-900`}
                 >
                   <Picker.Item label="+216 (Tunisia)" value="+216" />
                   <Picker.Item label="+213 (Algeria)" value="+213" />
                 </Picker>
               </View>
               <TextInput
-                style={tw`flex-1 h-12 bg-gray-100 rounded-lg px-4 text-blue-900`}
+                style={tw`flex-1 h-12 bg-gray-100 rounded-lg px-4 text-purple-900`}
                 placeholder={t.phonePlaceholder || "Numéro de téléphone"}
                 keyboardType="phone-pad"
                 value={formData.phoneNumber}
@@ -471,7 +470,7 @@ const SignUp: React.FC = () => {
               />
             </View>
             <TextInput
-              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-blue-900`}
+              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-purple-900`}
               placeholder={t.emailPlaceholder || "Email"}
               keyboardType="email-address"
               value={formData.email}
@@ -483,12 +482,12 @@ const SignUp: React.FC = () => {
       case 3:
         return (
           <View style={tw`w-full`}>
-            <Text style={tw`text-lg font-semibold text-blue-900 mb-2 text-center`}>
+            <Text style={tw`text-lg font-semibold text-purple-900 mb-2 text-center`}>
               {t.pieceTypes || "Types de pièces"}
             </Text>
             <View style={tw`flex-row justify-between mb-4`}>
               <TouchableOpacity
-                style={tw`flex-1 h-12 bg-gray-100 rounded-lg justify-center items-center mx-1 ${formData.typesPieces.includes('neuf') ? 'bg-blue-900' : ''}`}
+                style={tw`flex-1 h-12 bg-gray-100 rounded-lg justify-center items-center mx-1 ${formData.typesPieces.includes('neuf') ? 'bg-purple-900' : ''}`}
                 onPress={() => toggleTypePiece('neuf')}
               >
                 <Text style={tw`text-base ${formData.typesPieces.includes('neuf') ? 'text-white' : 'text-gray-600'}`}>
@@ -496,7 +495,7 @@ const SignUp: React.FC = () => {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={tw`flex-1 h-12 bg-gray-100 rounded-lg justify-center items-center mx-1 ${formData.typesPieces.includes('occasion') ? 'bg-blue-900' : ''}`}
+                style={tw`flex-1 h-12 bg-gray-100 rounded-lg justify-center items-center mx-1 ${formData.typesPieces.includes('occasion') ? 'bg-purple-900' : ''}`}
                 onPress={() => toggleTypePiece('occasion')}
               >
                 <Text style={tw`text-base ${formData.typesPieces.includes('occasion') ? 'text-white' : 'text-gray-600'}`}>
@@ -504,7 +503,7 @@ const SignUp: React.FC = () => {
                 </Text>
               </TouchableOpacity>
             </View>
-            <Text style={tw`text-lg font-semibold text-blue-900 mb-2 text-center`}>
+            <Text style={tw`text-lg font-semibold text-purple-900 mb-2 text-center`}>
               {t.specialBrands || "Marques spécialisées"}
             </Text>
             <Text style={tw`text-sm text-gray-600 mb-2 text-center`}>
@@ -521,7 +520,7 @@ const SignUp: React.FC = () => {
                     key={brand}
                     style={tw`m-1 px-3 py-2 rounded-lg border ${
                       formData.marquesSpecialises.includes(brand)
-                        ? 'bg-blue-900 border-blue-900'
+                        ? 'bg-purple-900 border-purple-900'
                         : 'bg-gray-100 border-gray-300'
                     }`}
                     onPress={() => toggleMarque(brand)}
@@ -541,7 +540,7 @@ const SignUp: React.FC = () => {
             </ScrollView>
             {formData.marquesSpecialises.length > 0 && (
               <View style={tw`mb-4`}>
-                <Text style={tw`text-sm font-medium text-blue-900 mb-2`}>
+                <Text style={tw`text-sm font-medium text-purple-900 mb-2`}>
                   {t.selectedBrands || "Marques sélectionnées:"}
                 </Text>
                 <Text style={tw`text-sm text-gray-600`}>
@@ -550,7 +549,7 @@ const SignUp: React.FC = () => {
               </View>
             )}
             <TextInput
-              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-blue-900`}
+              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-purple-900`}
               placeholder={t.passwordPlaceholder || "Mot de passe"}
               secureTextEntry
               value={formData.password}
@@ -558,7 +557,7 @@ const SignUp: React.FC = () => {
               placeholderTextColor="#9CA3AF"
             />
             <TextInput
-              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-blue-900`}
+              style={tw`w-full h-12 bg-gray-100 rounded-lg px-4 mb-4 text-purple-900`}
               placeholder={t.confirmPasswordPlaceholder || "Confirmer le mot de passe"}
               secureTextEntry
               value={formData.confirmPassword}
@@ -585,18 +584,18 @@ const SignUp: React.FC = () => {
       >
       <View style={tw`w-full items-end mb-4`}>
         <TouchableOpacity onPress={toggleLanguage} style={tw`p-2 bg-gray-100 rounded-lg`}>
-          <Text style={tw`text-base font-bold text-blue-900`}>
+          <Text style={tw`text-base font-bold text-purple-900`}>
             {language === 'fr' ? 'العربية' : 'Français'}
           </Text>
         </TouchableOpacity>
       </View>
       <View style={tw`w-full items-center`}>
         <Image
-          source={require('../../assets/images/logo.png')}
+          source={require('../../assets/images/ipiece.png')}
           style={tw`w-40 h-40 mb-5`}
           resizeMode="contain"
         />
-        <Text style={tw`text-3xl font-bold text-blue-900 mb-2 text-center`}>
+        <Text style={tw`text-3xl font-bold text-purple-900 mb-2 text-center`}>
           {t.signupTitle || "Inscription"}
         </Text>
         <Text style={tw`text-base text-gray-600 mb-5 text-center`}>
@@ -622,7 +621,7 @@ const SignUp: React.FC = () => {
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              style={tw`flex-1 h-12 bg-blue-900 rounded-lg justify-center items-center min-w-[120px]`}
+              style={tw`flex-1 h-12 bg-purple-900 rounded-lg justify-center items-center min-w-[120px]`}
               onPress={handleNext}
               disabled={isLoading}
             >
